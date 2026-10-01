@@ -38,6 +38,29 @@ def
            JIT_Extended_Asm  = struct (GccJitHandle jit_extended_asm),
            JIT_Timer         = struct (GccJitHandle jit_timer);
 
+  { The class hierachy looks like this:
+     +- gcc_jit_object
+         +- gcc_jit_location
+         +- gcc_jit_type
+            +- gcc_jit_struct
+            +- gcc_jit_function_type
+            +- gcc_jit_vector_type
+         +- gcc_jit_field
+         +- gcc_jit_function
+         +- gcc_jit_block
+         +- gcc_jit_rvalue
+             +- gcc_jit_lvalue
+                 +- gcc_jit_param
+         +- gcc_jit_case
+         +- gcc_jit_extended_asm
+  }
+  mode JIT_Object_Variant = union (JIT_Location, JIT_Type, JIT_Field, JIT_Param,
+                                   JIT_Function, JIT_Block, JIT_Lvalue, JIT_Rvalue,
+                                   JIT_Case, JIT_Extended_Asm);
+  mode JIT_Type_Variant = union (JIT_Type, JIT_Struct, JIT_Function_Type, JIT_Vector_Type);
+  mode JIT_RValue_Variant = union (JIT_Rvalue, JIT_Lvalue, JIT_Param);
+  mode JIT_LValue_Variant = union (JIT_Lvalue, JIT_Param);
+
   { Options taking string values. }
   {{pub}} mode Str_Option = struct (int str_option);
   {{pub}} Str_Option option_progname,
