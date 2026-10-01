@@ -617,14 +617,15 @@ def
      res);
 
   { FIXME: string -> char* }
-  { FIXME: []JIT_field fields }
+  { FIXME: num_fields redundant? }
   { Create a struct type from an array of fields. }
   pub proc jit_new_struct_type = (JIT_Context ctxt, JIT_Location location,
-                                  string name, int num_fields, []GccJitHandle fields) JIT_Struct:
+                                  string name, int num_fields, []JIT_Field fields) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_struct_type(jit_context of ctxt,
                                                     jit_location of location,
-                                                    name, num_fields, fields);
+                                                    name, num_fields,
+                                                    jit_field of fields);
      res);
 
   { FIXME: string -> char* }
@@ -643,13 +644,14 @@ def
      jit_type of res := c_struct_as_type(jit_struct of struct_type);
      res);
 
-  { FIXME: []JIT_Field fields }
+  { FIXME: num_fields redundant? }
   { Populating the fields of a formerly-opaque struct type. }
   pub proc struct_set_fields = (JIT_Struct struct_type, JIT_Location location,
-                                int num_fields, []GccJitHandle fields) void:
+                                int num_fields, []JIT_Field fields) void:
     c_struct_set_fields(jit_struct of struct_type,
                         jit_location of location,
-                        num_fields, fields);
+                        num_fields,
+                        jit_field of fields);
 
   { Get a field by index. }
   pub proc struct_get_field = (JIT_Struct struct_type, long long int index) JIT_Field:
@@ -662,27 +664,30 @@ def
     c_struct_get_field_count(jit_struct of struct_type);
 
   { FIXME: string -> char* }
-  { FIXME: []JIT_Field fields }
+  { FIXME: num_fields redundant? }
   { Unions work similarly to structs. }
   pub proc jit_new_union_type = (JIT_Context ctxt, JIT_Location location,
-                                 string name, int num_fields, []GccJitHandle fields) JIT_Struct:
+                                 string name, int num_fields, []JIT_Field fields) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_union_type(jit_context of ctxt,
                                                    jit_location of location,
-                                                   name, num_fields, fields);
+                                                   name, num_fields,
+                                                   jit_field of fields);
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
-  { FIXME: []JIT_Type params }
+  { FIXME: num_params redundant? }
   { Create a function pointer type. }
   pub proc jit_new_function_ptr_type = (JIT_Context ctxt, JIT_Location location,
                                         JIT_Type return_type, int num_params,
-                                        []GccJitHandle param_types, bool is_variadic) JIT_Type:
+                                        []JIT_Type param_types, bool is_variadic) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_function_ptr_type(jit_context of ctxt,
                                                         jit_location of location,
                                                         jit_type of return_type,
-                                                        num_params, param_types, is_variadic);
+                                                        num_params,
+                                                        jit_type of param_types,
+                                                        is_variadic);
      res);
 
   { FIXME: string -> char* }
@@ -713,17 +718,19 @@ def
      res);
 
   { FIXME: string -> char* }
-  { FIXME: []JIT_Param params }
+  { FIXME: num_params redundant? }
   { Create a function. }
   pub proc jit_new_function = (JIT_Context ctxt, JIT_Location location, Function_Kind kind,
                                JIT_Type return_type, string name, int num_params,
-                               []GccJitHandle params, bool is_variadic) JIT_Function:
+                               []JIT_Param params, bool is_variadic) JIT_Function:
     (JIT_Function res;
      jit_function of res := c_context_new_function(jit_context of ctxt,
                                                    jit_location of location,
                                                    function_kind of kind,
                                                    jit_type of return_type,
-                                                   name, num_params, params, is_variadic);
+                                                   name, num_params,
+                                                   jit_param of params,
+                                                   is_variadic);
      res);
 
   { FIXME: string -> char* }
@@ -771,16 +778,18 @@ def
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
-  { FIXME: []JIT_Field fields, []JIT_Rvalue values }
+  { FIXME: num_values redundant? }
   { Create a constructor for a struct as an rvalue. }
   pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Location location,
                                          JIT_Type type, long long int num_values,
-                                         []GccJitHandle fields, []GccJitHandle values) JIT_Rvalue:
+                                         []JIT_Field fields, []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_struct_constructor(jit_context of ctxt,
                                                            jit_location of location,
                                                            jit_type of type,
-                                                           num_values, fields, values);
+                                                           num_values,
+                                                           jit_field of fields,
+                                                           jit_rvalue of values);
      res);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
@@ -798,16 +807,17 @@ def
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
-  { FIXME: []JIT_Rvalue values }
+  { FIXME: num_values redundant? }
   { Create a constructor for an array as an rvalue. }
   pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Location location,
                                         JIT_Type type, long long int num_values,
-                                        []GccJitHandle values) JIT_Rvalue:
+                                        []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_array_constructor(jit_context of ctxt,
                                                           jit_location of location,
                                                           jit_type of type,
-                                                          num_values, values);
+                                                          num_values,
+                                                          jit_rvalue of values);
      res);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
@@ -950,27 +960,29 @@ def
                                                    jit_rvalue of b);
      res);
 
-  { FIXME: []JIT_Rvalue args }
+  { FIXME: numargs redundant? }
   { Call of a specific function. }
   pub proc jit_new_call = (JIT_Context ctxt, JIT_Location location,
-                           JIT_Function function, int numargs, []GccJItHandle args) JIT_Rvalue:
+                           JIT_Function function, int numargs, []JIT_Rvalue args) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_call(jit_context of ctxt,
                                              jit_location of location,
                                              jit_function of function,
-                                             numargs, args);
+                                             numargs,
+                                             jit_rvalue of args);
      res);
 
-  { FIXME: []JIT_Rvalue args }
+  { FIXME: numargs redundant? }
   { Call through a function pointer. }
   pub proc jit_new_call_through_ptr = (JIT_Context ctxt, JIT_Location location,
                                        JIT_Rvalue fn_ptr, int numargs,
-                                       []GccJitHandle args) JIT_Rvalue:
+                                       []JIT_Rvalue args) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_call_through_ptr(jit_context of ctxt,
                                                          jit_location of location,
                                                          jit_rvalue of fn_ptr,
-                                                         numargs, args);
+                                                         numargs,
+                                                         jit_rvalue of args);
      res);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
@@ -1213,16 +1225,17 @@ def
      res);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
-  { FIXME: []JIT_Case cases }
+  { FIXME: num_cases redundant? }
   { Terminate a block by adding evaluation of an rvalue, then performing a multiway branch. }
   pub proc block_end_with_switch = (JIT_Block block, JIT_Location location,
                                     JIT_Rvalue expr, JIT_Block default_block,
-                                    int num_cases, []GccJitHandle cases) void:
+                                    int num_cases, []JIT_Case cases) void:
     c_block_end_with_switch(jit_block of block,
                             jit_location of location,
                             jit_rvalue of expr,
                             jit_block of default_block,
-                            num_cases, cases);
+                            num_cases,
+                            jit_case of cases);
 
   { Given an existing JIT context, create a child context. }
   pub proc jit_new_child_context = (JIT_Context ctxt) JIT_Context:
@@ -1304,16 +1317,17 @@ def
                                                  jit_location of location);
      res);
 
-  { FIXME: []JIT_Rvalue elements }
+  { FIXME: num_elements redundant? }
   { Build a vector rvalue from an array of elements. }
   pub proc jit_new_rvalue_from_vector = (JIT_Context ctxt, JIT_Location location,
                                          JIT_Type type, long long int num_elements,
-                                         []GccJitHandle  elements) JIT_Rvalue:
+                                         []JIT_Rvalue  elements) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_rvalue_from_vector(jit_context of ctxt,
                                                            jit_location of location,
                                                            jit_type of type,
-                                                           num_elements, elements);
+                                                           num_elements,
+                                                           jit_rvalue of elements);
      res);
 
   { Functions to retrieve libgccjit version. }
@@ -1339,19 +1353,19 @@ def
      res);
 
   { FIXME: string -> char* }
-  { FIXME: []JIT_Block blocks }
+  { FIXME: num_goto_blocks redundant? }
   { Create a gcc_jit_extended_asm for an extended asm statement that may perform jumps,
     and use it to terminate the given block. }
   pub proc block_end_with_extended_asm_goto = (JIT_Block block, JIT_Location location,
                                                string asm_template, int num_goto_blocks,
-                                               []GccJitHandle goto_blocks,
+                                               []JIT_Block goto_blocks,
                                                JIT_Block fallthrough_block) JIT_Extended_Asm:
     (JIT_Extended_Asm res;
      jit_extended_asm of res := c_block_end_with_extended_asm_goto(jit_block of block,
                                                                    jit_location of location,
                                                                    asm_template,
                                                                    num_goto_blocks,
-                                                                   goto_blocks,
+                                                                   jit_block of goto_blocks,
                                                                    jit_block of fallthrough_block);
      res);
 
