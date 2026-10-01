@@ -22,7 +22,6 @@ def
   pub mode JIT_Context       = struct (GccJitHandle jit_context),
            JIT_Result        = struct (GccJitHandle jit_result),
            JIT_Targetinfo    = struct (GccJitHandle jit_targetinfo),
-           JIT_Object        = struct (GccJitHandle jit_object),
            JIT_Location      = struct (GccJitHandle jit_location),
            JIT_Type          = struct (GccJitHandle jit_type),
            JIT_Struct        = struct (GccJitHandle jit_struct),
@@ -37,6 +36,8 @@ def
            JIT_Case          = struct (GccJitHandle jit_case),
            JIT_Extended_Asm  = struct (GccJitHandle jit_extended_asm),
            JIT_Timer         = struct (GccJitHandle jit_timer);
+
+  {{pub}} mode JIT_Object    = struct (GccJitHandle jit_object),
 
   { The class hierachy looks like this:
      +- gcc_jit_object
@@ -485,16 +486,16 @@ def
   pub proc result_release = (JIT_Result result) void:
     c_result_release(jit_result of result);
 
-  { Which context is "object" within? }
-  pub proc object_get_context = (JIT_Object object) JIT_Context:
+  { Which context is "variant" within? }
+  pub proc jit_get_context = (JIT_Object_Variant variant) JIT_Context:
     (JIT_Context res;
-     jit_context of res := c_object_get_context(jit_object of object);
+     jit_context of res := c_object_get_context(jit_object of as_object(variant));
      res);
 
   { FIXME: char* -> string }
   { Get a human-readable description of this object. }
-  pub proc object_get_debug_string = (JIT_Object object) string:
-    c_object_get_debug_string(jit_object of object);
+  pub proc jit_get_debug_string = (JIT_Object_Variant variant) string:
+    c_object_get_debug_string(jit_object of as_object(variant));
 
   { FIXME: string -> char* }
   { Create a source code location for use by the debugger. }
@@ -506,7 +507,7 @@ def
      res);
 
   { Upcasting to object. }
-  pub proc as_object = (JIT_Object_Variant variant) JIT_Object:
+  proc as_object = (JIT_Object_Variant variant) JIT_Object:
     (JIT_Object res;
      jit_object of res := case variant in
        (JIT_Location location): c_location_as_object(jit_location of location),
