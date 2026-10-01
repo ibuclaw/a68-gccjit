@@ -505,18 +505,21 @@ def
                                                    filename, line, column);
      res);
 
-  { FIXME: unify with union(JIT_xxx) }
   { Upcasting to object. }
-  pub proc location_as_object = (JIT_Location location) JIT_Object:
+  pub proc as_object = (JIT_Object_Variant variant) JIT_Object:
     (JIT_Object res;
-     jit_object of res := c_location_as_object(jit_location of location);
-     res);
-
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc type_as_object = (JIT_Type type) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_type_as_object(jit_type of type);
+     jit_object of res := case variant in
+       (JIT_Location location): c_location_as_object(jit_location of location),
+       (JIT_Type type):         c_type_as_object(jit_type of type),
+       (JIT_Field field):       c_field_as_object(jit_field of field),
+       (JIT_Param param):       c_param_as_object(jit_param of param),
+       (JIT_Function function): c_function_as_object(jit_function of function),
+       (JIT_Block block):       c_block_as_object(jit_block of block),
+       (JIT_Lvalue lvalue):     c_lvalue_as_object(jit_lvalue of lvalue),
+       (JIT_Rvalue rvalue):     c_rvalue_as_object(jit_rvalue of rvalue),
+       (JIT_Case case_):        c_case_as_object(jit_case of case_),
+       (JIT_Extended_Asm asm):  c_extended_asm_as_object(jit_extended_asm of asm)
+     esac;
      res);
 
   { Get a type from the context. }
@@ -612,13 +615,6 @@ def
                                                 width, name);
      res);
 
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc field_as_object = (JIT_Field field) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_field_as_object(jit_field of field);
-     res);
-
   { FIXME: string -> char* }
   { FIXME: []JIT_field fields }
   { Create a struct type from an array of fields. }
@@ -700,24 +696,19 @@ def
                                              name);
      res);
 
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc param_as_object = (JIT_Param param) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_param_as_object(jit_param of param);
-     res);
-
   { Upcasting to lvalue. }
-  pub proc param_as_lvalue = (JIT_Param param) JIT_Lvalue:
+  pub proc as_lvalue = (JIT_Param param) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_param_as_lvalue(jit_param of param);
      res);
 
-  { FIXME: unify with union(JIT_xxx) }
   { Upcasting to rvalue. }
-  pub proc param_as_rvalue = (JIT_Param param) JIT_Rvalue:
+  pub proc as_rvalue = (JIT_Lvalue_Variant variant) JIT_Rvalue:
     (JIT_Rvalue res;
-     jit_rvalue of res := c_param_as_rvalue(jit_param of param);
+     jit_rvalue of res := case variant in
+       (JIT_Param param):   c_param_as_rvalue(jit_param of param),
+       (JIT_Lvalue lvalue): c_lvalue_as_rvalue(jit_lvalue of lvalue)
+     esac;
      res);
 
   { FIXME: string -> char* }
@@ -741,13 +732,6 @@ def
      jit_function of res := c_context_get_builtin_function(jit_context of ctxt, name);
      res);
 
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc function_as_object = (JIT_Function function) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_function_as_object(jit_function of function);
-     res);
-
   { Get a specific param of a function by index. }
   pub proc function_get_param = (JIT_Function function, int index) JIT_Param:
     (JIT_Param res;
@@ -764,13 +748,6 @@ def
   pub proc function_new_block = (JIT_Function function, string name) JIT_Block:
     (JIT_Block res;
      jit_block of res := c_function_new_block(jit_function of function, name);
-     res);
-
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc block_as_object = (JIT_Block block) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_block_as_object(jit_block of block);
      res);
 
   { Which function is this block within? }
@@ -857,27 +834,6 @@ def
   { Mark a global variable as read-only. }
   pub proc global_set_readonly = (JIT_Lvalue global) void:
     c_global_set_readonly(jit_lvalue of global);
-
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc lvalue_as_object = (JIT_Lvalue lvalue) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_lvalue_as_object(jit_lvalue of lvalue);
-     res);
-
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to rvalue. }
-  pub proc lvalue_as_rvalue = (JIT_Lvalue lvalue) JIT_Rvalue:
-    (JIT_Rvalue res;
-     jit_rvalue of res := c_lvalue_as_rvalue(jit_lvalue of lvalue);
-     res);
-
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc rvalue_as_object = (JIT_Rvalue rvalue) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_rvalue_as_object(jit_rvalue of rvalue);
-     res);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
   { Get the type of an rvalue. }
@@ -1255,13 +1211,6 @@ def
                                             jit_block of dest_block);
      res);
 
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc case_as_object = (JIT_Case case_) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_case_as_object(jit_case of case_);
-     res);
-
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
   { FIXME: []JIT_Case cases }
   { Terminate a block by adding evaluation of an rvalue, then performing a multiway branch. }
@@ -1403,13 +1352,6 @@ def
                                                                    num_goto_blocks,
                                                                    goto_blocks,
                                                                    jit_block of fallthrough_block);
-     res);
-
-  { FIXME: unify with union(JIT_xxx) }
-  { Upcasting to object. }
-  pub proc extended_asm_as_object = (JIT_Extended_Asm asm) JIT_Object:
-    (JIT_Object res;
-     jit_object of res := c_extended_asm_as_object(jit_extended_asm of asm);
      res);
 
   { Set whether the gcc_jit_extended_asm has side-effects,
