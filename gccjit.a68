@@ -18,6 +18,1518 @@
 }
 module Gccjit =
 def
+  { Data structures. }
+  pub mode JIT_Context       = struct (GccJitHandle jit_context),
+           JIT_Result        = struct (GccJitHandle jit_result),
+           JIT_Targetinfo    = struct (GccJitHandle jit_targetinfo),
+           JIT_Object        = struct (GccJitHandle jit_object),
+           JIT_Location      = struct (GccJitHandle jit_location),
+           JIT_Type          = struct (GccJitHandle jit_type),
+           JIT_Struct        = struct (GccJitHandle jit_struct),
+           JIT_Function_Type = struct (GccJitHandle jit_function_type),
+           JIT_Vector_Type   = struct (GccJitHandle jit_vector_type),
+           JIT_Field         = struct (GccJitHandle jit_field),
+           JIT_Function      = struct (GccJitHandle jit_function),
+           JIT_Block         = struct (GccJitHandle jit_block),
+           JIT_Rvalue        = struct (GccJitHandle jit_rvalue),
+           JIT_Lvalue        = struct (GccJitHandle jit_lvalue),
+           JIT_Param         = struct (GccJitHandle jit_param),
+           JIT_Case          = struct (GccJitHandle jit_case),
+           JIT_Extended_Asm  = struct (GccJitHandle jit_extended_asm),
+           JIT_Timer         = struct (GccJitHandle jit_timer);
+
+  { Options taking string values. }
+  pub mode Str_Option = struct (int str_option);
+  pub Str_Option option_progname,
+                 option_special_chars_in_func_names;
+  str_option of option_progname := 0;
+  str_option of option_special_chars_in_func_names := 1;
+
+  { Options taking int values. }
+  pub mode Int_Option = struct (int int_option);
+  pub Int_Option option_optimization_level;
+  int_option of option_optimization_level := 0;
+
+  { Options taking boolean values. }
+  pub mode Bool_Option = struct (int bool_option);
+  pub Bool_Option option_debuginfo,
+                  option_dump_initial_tree,
+                  option_dump_initial_gimple,
+                  option_dump_generated_code,
+                  option_dump_summary,
+                  option_dump_everything,
+                  option_selfcheck_gc,
+                  option_keep_intermediates;
+  bool_option of option_debuginfo := 0;
+  bool_option of option_dump_initial_tree := 1;
+  bool_option of option_dump_initial_gimple := 2;
+  bool_option of option_dump_generated_code := 3;
+  bool_option of option_dump_summary := 4;
+  bool_option of option_dump_everything := 5;
+  bool_option of option_selfcheck_gc := 6;
+  bool_option of option_keep_intermediates := 7;
+
+  { Kinds of ahead-of-time compilation. }
+  pub mode Output_Kind = struct (int output_kind);
+  pub Output_Kind output_assembler,
+                  output_object_file,
+                  output_dynamic_library,
+                  output_executable;
+  output_kind of output_assembler := 0;
+  output_kind of output_object_file := 1;
+  output_kind of output_dynamic_library := 2;
+  output_kind of output_executable := 3;
+
+  { Access to specific types. }
+  pub mode CType = struct (int ctype);
+  pub CType type_void,
+            type_void_ptr,
+            type_bool,
+            type_char,
+            type_signed_char,
+            type_unsigned_char,
+            type_short,
+            type_unsigned_short,
+            type_int,
+            type_unsigned_int,
+            type_long,
+            type_unsigned_long,
+            type_long_long,
+            type_unsigned_long_long,
+            type_float,
+            type_double,
+            type_long_double,
+            type_const_char_ptr,
+            type_size_t,
+            type_file_ptr,
+            type_complex_float,
+            type_complex_double,
+            type_complex_long_double,
+            type_uint8_t,
+            type_uint16_t,
+            type_uint32_t,
+            type_uint64_t,
+            type_uint128_t,
+            type_int8_t,
+            type_int16_t,
+            type_int32_t,
+            type_int64_t,
+            type_int128_t,
+            type_bfloat16,
+            type_float16,
+            type_float32,
+            type_float64,
+            type_float128;
+  ctype of type_void := 0;
+  ctype of type_void_ptr := 1;
+  ctype of type_bool := 2;
+  ctype of type_char := 3;
+  ctype of type_signed_char := 4;
+  ctype of type_unsigned_char := 5;
+  ctype of type_short := 6;
+  ctype of type_unsigned_short := 7;
+  ctype of type_int := 8;
+  ctype of type_unsigned_int := 9;
+  ctype of type_long := 10;
+  ctype of type_unsigned_long := 11;
+  ctype of type_long_long := 12;
+  ctype of type_unsigned_long_long := 13;
+  ctype of type_float := 14;
+  ctype of type_double := 15;
+  ctype of type_long_double := 16;
+  ctype of type_const_char_ptr := 17;
+  ctype of type_size_t := 18;
+  ctype of type_file_ptr := 19;
+  ctype of type_complex_float := 20;
+  ctype of type_complex_double := 21;
+  ctype of type_complex_long_double := 22;
+  ctype of type_uint8_t := 23;
+  ctype of type_uint16_t := 24;
+  ctype of type_uint32_t := 25;
+  ctype of type_uint64_t := 26;
+  ctype of type_uint128_t := 27;
+  ctype of type_int8_t := 28;
+  ctype of type_int16_t := 29;
+  ctype of type_int32_t := 30;
+  ctype of type_int64_t := 31;
+  ctype of type_int128_t := 32;
+  ctype of type_bfloat16 := 33;
+  ctype of type_float16 := 34;
+  ctype of type_float32 := 35;
+  ctype of type_float64 := 36;
+  ctype of type_float128 := 37;
+
+  { Kinds of function. }
+  pub mode Function_Kind = struct (int function_kind);
+  pub Function_Kind function_exported,
+                    function_internal,
+                    function_imported,
+                    function_always_inline;
+  function_kind of function_exported := 0;
+  function_kind of function_internal := 1;
+  function_kind of function_imported := 2;
+  function_kind of function_always_inline := 3;
+
+  { Thread local storage model. }
+  pub mode Tls_Model = struct (int tls_model);
+  pub Tls_Model tls_none,
+                tls_global_dynamic,
+                tls_local_dynamic,
+                tls_initial_exec,
+                tls_local_exec;
+  tls_model of tls_none := 0;
+  tls_model of tls_global_dynamic := 1;
+  tls_model of tls_local_dynamic := 2;
+  tls_model of tls_initial_exec := 3;
+  tls_model of tls_local_exec := 4;
+
+  { Kinds of global. }
+  pub mode Global_Kind = struct (int global_kind);
+  pub Global_Kind global_exported,
+                  global_internal,
+                  global_imported;
+  global_kind of global_exported := 0;
+  global_kind of global_internal := 1;
+  global_kind of global_imported := 2;
+
+  { Unary operations. }
+  pub mode Unary_Op = struct (int unary_op);
+  pub Unary_Op unary_minus,
+               unary_bitwise_negate,
+               unary_logical_negate,
+               unary_abs;
+  unary_op of unary_minus := 0;
+  unary_op of unary_bitwise_negate := 1;
+  unary_op of unary_logical_negate := 2;
+  unary_op of unary_abs := 3;
+
+  { Binary operations. }
+  pub mode Binary_Op = struct (int binary_op);
+  pub Binary_Op binary_plus,
+                binary_minus,
+                binary_mult,
+                binary_divide,
+                binary_modulo,
+                binary_bitwise_and,
+                binary_bitwise_xor,
+                binary_bitwise_or,
+                binary_logical_and,
+                binary_logical_or,
+                binary_lshift,
+                binary_rshift;
+  binary_op of binary_plus := 0;
+  binary_op of binary_minus := 1;
+  binary_op of binary_mult := 2;
+  binary_op of binary_divide := 3;
+  binary_op of binary_modulo := 4;
+  binary_op of binary_bitwise_and := 5;
+  binary_op of binary_bitwise_xor := 6;
+  binary_op of binary_bitwise_or := 7;
+  binary_op of binary_logical_and := 8;
+  binary_op of binary_logical_or := 9;
+  binary_op of binary_lshift := 10;
+  binary_op of binary_rshift := 11;
+
+  { Comparisons. }
+  pub mode Comparison = struct (int comparison);
+  pub Comparison comparison_eq,
+                 comparison_ne,
+                 comparison_lt,
+                 comparison_le,
+                 comparison_gt,
+                 comparison_ge;
+  comparison of comparison_eq := 0;
+  comparison of comparison_ne := 1;
+  comparison of comparison_lt := 2;
+  comparison of comparison_le := 3;
+  comparison of comparison_gt := 4;
+  comparison of comparison_ge := 5;
+
+  { Function attributes. }
+  pub mode Fn_Attribute = struct (int fn_attribute);
+  pub Fn_Attribute fn_attribute_alias,
+                   fn_attribute_always_inline,
+                   fn_attribute_inline,
+                   fn_attribute_noinline,
+                   fn_attribute_target,
+                   fn_attribute_used,
+                   fn_attribute_visibility,
+                   fn_attribute_cold,
+                   fn_attribute_returns_twice,
+                   fn_attribute_pure,
+                   fn_attribute_const,
+                   fn_attribute_weak,
+                   fn_attribute_nonnull,
+                   arm_cmse_nonsecure_call,
+                   arm_cmse_nonsecure_entry,
+                   arm_pcs,
+                   avr_interrupt,
+                   avr_noblock,
+                   avr_signal,
+                   gcn_amdgpu_hsa_kernel,
+                   msp430_interrupt,
+                   nvptx_kernel,
+                   riscv_interrupt,
+                   x86_fast_call,
+                   x86_interrupt,
+                   x86_ms_abi,
+                   x86_stdcall,
+                   x86_sysv_abi,
+                   x86_this_call;
+  fn_attribute of fn_attribute_alias := 0;
+  fn_attribute of fn_attribute_always_inline := 1;
+  fn_attribute of fn_attribute_inline := 2;
+  fn_attribute of fn_attribute_noinline := 3;
+  fn_attribute of fn_attribute_target := 4;
+  fn_attribute of fn_attribute_used := 5;
+  fn_attribute of fn_attribute_visibility := 6;
+  fn_attribute of fn_attribute_cold := 7;
+  fn_attribute of fn_attribute_returns_twice := 8;
+  fn_attribute of fn_attribute_pure := 9;
+  fn_attribute of fn_attribute_const := 10;
+  fn_attribute of fn_attribute_weak := 11;
+  fn_attribute of fn_attribute_nonnull := 12;
+  fn_attribute of arm_cmse_nonsecure_call := 13;
+  fn_attribute of arm_cmse_nonsecure_entry := 14;
+  fn_attribute of arm_pcs := 15;
+  fn_attribute of avr_interrupt := 16;
+  fn_attribute of avr_noblock := 17;
+  fn_attribute of avr_signal := 18;
+  fn_attribute of gcn_amdgpu_hsa_kernel := 19;
+  fn_attribute of msp430_interrupt := 20;
+  fn_attribute of nvptx_kernel := 21;
+  fn_attribute of riscv_interrupt := 22;
+  fn_attribute of x86_fast_call := 23;
+  fn_attribute of x86_interrupt := 24;
+  fn_attribute of x86_ms_abi := 25;
+  fn_attribute of x86_stdcall := 26;
+  fn_attribute of x86_sysv_abi := 27;
+  fn_attribute of x86_this_call := 28;
+
+  { Variable attributes. }
+  pub mode Var_Attribute = struct (int var_attribute);
+  pub Var_Attribute var_attribute_visibility;
+  var_attribute of var_attribute_visibility := 0;
+
+  { Acquire a JIT-compilation context. }
+  pub proc jit_acquire = JIT_Context:
+    (JIT_Context res;
+     jit_context of res := c_context_acquire;
+     res);
+
+  { Release the context. }
+  pub proc jit_release = (JIT_Context ctxt) void:
+    c_context_release(jit_context of ctxt);
+
+  { Set a string option on the given context. }
+  pub proc set_str_option = (JIT_Context ctxt, Str_Option option, string value) void:
+    c_context_set_str_option(jit_context of ctxt,
+                             str_option of option,
+                             value);
+
+  { Set an int option on the given context. }
+  pub proc set_int_option = (JIT_Context ctxt, Int_Option option, int value) void:
+    c_context_set_int_option(jit_context of ctxt,
+                             int_option of option,
+                             value);
+
+  { Set a boolean option on the given context. }
+  pub proc set_bool_option = (JIT_Context ctxt, Bool_Option option, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option,
+                              value);
+
+  { Disable errors for unreachable blocks. }
+  pub proc set_allow_unreachable_blocks = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_allow_unreachable_blocks(jit_context of ctxt, value);
+
+  { Disable printing errors to stderr. }
+  pub proc set_print_errors_to_stderr = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_print_errors_to_stderr(jit_context of ctxt, value);
+
+  { Use an external driver executable instead of the embedded driver. }
+  pub proc set_use_external_driver = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_use_external_driver(jit_context of ctxt, value);
+
+  { FIXME: string -> char* }
+  { Add an arbitrary GCC command-line option to the context. }
+  pub proc jit_add_command_line_option = (JIT_Context ctxt, string s) void:
+    c_context_add_command_line_option(jit_context of ctxt, s);
+
+  { FIXME: string -> char* }
+  { Add an arbitrary GCC driver option to the context. }
+  pub proc jit_add_driver_option = (JIT_Context ctxt, string s) void:
+    c_context_add_driver_option(jit_context of ctxt, s);
+
+  { Compile the context to in-memory machine code. }
+  pub proc jit_compile = (JIT_Context ctxt) JIT_Result:
+    (JIT_Result res;
+     jit_result of res := c_context_compile(jit_context of ctxt);
+     res);
+
+  { FIXME: string -> char* }
+  { Compile the context to a file of the given kind. }
+  pub proc jit_compile_to_file = (JIT_Context ctxt, Output_Kind kind , string filename) void:
+    c_context_compile_to_file(jit_context of ctxt,
+                              output_kind of kind,
+                              filename);
+
+  { FIXME: string -> char* }
+  { Dump a C-like representation of the context to the given path. }
+  pub proc jit_dump_to_file = (JIT_Context ctxt, string path, int update_locations) void:
+    c_context_dump_to_file(jit_context of ctxt,
+                           path, update_locations);
+
+  { FIXME: int -> FILE }
+  { Enable ongoing logging of the context's activity to the given logfile. }
+  pub proc jit_set_logfile = (JIT_Context ctxt, FIXME_FilePtr logfile,
+                              int flags, int verbosity) void:
+    c_context_set_logfile(jit_context of ctxt,
+                          logfile, flags, verbosity);
+
+  { FIXME: char* -> string }
+  { Get the first error message that occurred on the context. }
+  pub proc jit_get_first_error = (JIT_Context ctxt) string:
+    c_context_get_first_error(jit_context of ctxt);
+
+  { FIXME: char* -> string }
+  { Get the last error message that occurred on the context. }
+  pub proc jit_get_last_error = (JIT_Context ctxt) string:
+    c_context_get_last_error(jit_context of ctxt);
+
+  { FIXME: Return a proc }
+  { Locate a function within the built machine code. }
+  pub proc result_get_code = (JIT_Result result, string name) FIXME_VoidPtr:
+    c_result_get_code(jit_result of result, name);
+
+  { FIXME: Return a ref to something }
+  { Locate a global within the built machine code. }
+  pub proc result_get_global = (JIT_Result result, string name) FIXME_VoidPtr:
+    c_result_get_global(jit_result of result, name);
+
+  { Release the result and unload the built shared library. }
+  pub proc result_release = (JIT_Result result) void:
+    c_result_release(jit_result of result);
+
+  { Which context is "object" within? }
+  pub proc object_get_context = (JIT_Object object) JIT_Context:
+    (JIT_Context res;
+     jit_context of res := c_object_get_context(jit_object of object);
+     res);
+
+  { FIXME: char* -> string }
+  { Get a human-readable description of this object. }
+  pub proc object_get_debug_string = (JIT_Object object) string:
+    c_object_get_debug_string(jit_object of object);
+
+  { FIXME: string -> char* }
+  { Create a source code location for use by the debugger. }
+  pub proc jit_new_location = (JIT_Context ctxt, string filename,
+                               int line, int column) JIT_Location:
+    (JIT_Location res;
+     jit_location of res := c_context_new_location(jit_context of ctxt,
+                                                   filename, line, column);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc location_as_object = (JIT_Location location) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_location_as_object(jit_location of location);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc type_as_object = (JIT_Type type) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_type_as_object(jit_type of type);
+     res);
+
+  { Get a type from the context. }
+  pub proc jit_get_type = (JIT_Context ctxt, CType type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_context_get_type(jit_context of ctxt,
+                                           ctype of type);
+     res);
+
+  { Get the integer type of the given size and signedness. }
+  pub proc jit_get_int_type = (JIT_Context ctxt, int num_bytes, bool is_signed) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_context_get_int_type(jit_context of ctxt,
+                                               num_bytes, is_signed);
+     res);
+
+  { Given type `T`, get type `T*`. }
+  pub proc type_get_pointer = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_get_pointer(jit_type of type);
+     res);
+
+  { Given type `T`, get type `const T`. }
+  pub proc type_get_const = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_get_const(jit_type of type);
+     res);
+
+  { Given type `T`, get type `volatile T`. }
+  pub proc type_get_volatile = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_get_volatile(jit_type of type);
+     res);
+
+  { Given type `T`, get type `restrict T`. }
+  pub proc type_get_restrict = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_get_restrict(jit_type of type);
+     res);
+
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Given types LTYPE and RTYPE, return non-zero if they are compatible. }
+  pub proc compatible_types = (JIT_Type a, JIT_Type b) int:
+    c_compatible_types(jit_type of a,
+                       jit_type of b);
+
+  { Given type `T`, get its size. }
+  pub proc type_get_size = (JIT_Type type) long long int:
+    c_type_get_size(jit_type of type);
+
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create an array type T[N] for a constant N. }
+  pub proc jit_new_array_type = (JIT_Context ctxt, JIT_Location location,
+                                 JIT_Type element_type, int num_elements) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_context_new_array_type(jit_context of ctxt,
+                                                 jit_location of location,
+                                                 jit_type of element_type,
+                                                 num_elements);
+     res);
+
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create an array type T[N] using a 64-bit element count. }
+  pub proc jit_new_array_type_u64 = (JIT_Context ctxt, JIT_Location location,
+                                     JIT_Type element_type, long long int num_elements) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_context_new_array_type_u64(jit_context of ctxt,
+                                                     jit_location of location,
+                                                     jit_type of element_type,
+                                                     num_elements);
+     res);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create a field, for use within a struct or union. }
+  pub proc jit_new_field = (JIT_Context ctxt, JIT_Location location,
+                            JIT_Type type, string name) JIT_Field:
+    (JIT_Field res;
+     jit_field of res := c_context_new_field(jit_context of ctxt,
+                                             jit_location of location,
+                                             jit_type of type,
+                                             name);
+     res);
+
+  { FIXME: string -> char* }
+  { Create a bit field for use within a struct or union. }
+  pub proc jit_new_bitfield = (JIT_Context ctxt, JIT_Location location,
+                               JIT_Type type, int width, string name) JIT_Field:
+    (JIT_Field res;
+     jit_field of res := c_context_new_bitfield(jit_context of ctxt,
+                                                jit_location of location,
+                                                jit_type of type,
+                                                width, name);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc field_as_object = (JIT_Field field) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_field_as_object(jit_field of field);
+     res);
+
+  { FIXME: string -> char* }
+  { FIXME: []JIT_field fields }
+  { Create a struct type from an array of fields. }
+  pub proc jit_new_struct_type = (JIT_Context ctxt, JIT_Location location,
+                                  string name, int num_fields, []GccJitHandle fields) JIT_Struct:
+    (JIT_Struct res;
+     jit_struct of res := c_context_new_struct_type(jit_context of ctxt,
+                                                    jit_location of location,
+                                                    name, num_fields, fields);
+     res);
+
+  { FIXME: string -> char* }
+  { Create an opaque struct type. }
+  pub proc jit_new_opaque_struct = (JIT_Context ctxt, JIT_Location location,
+                                    string name) JIT_Struct:
+    (JIT_Struct res;
+     jit_struct of res := c_context_new_opaque_struct(jit_context of ctxt,
+                                                      jit_location of location,
+                                                      name);
+     res);
+
+  { Upcast a struct to a type. }
+  pub proc struct_as_type = (JIT_Struct struct_type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_struct_as_type(jit_struct of struct_type);
+     res);
+
+  { FIXME: []JIT_Field fields }
+  { Populating the fields of a formerly-opaque struct type. }
+  pub proc struct_set_fields = (JIT_Struct struct_type, JIT_Location location,
+                                int num_fields, []GccJitHandle fields) void:
+    c_struct_set_fields(jit_struct of struct_type,
+                        jit_location of location,
+                        num_fields, fields);
+
+  { Get a field by index. }
+  pub proc struct_get_field = (JIT_Struct struct_type, long long int index) JIT_Field:
+    (JIT_Field res;
+     jit_field of res := c_struct_get_field(jit_struct of struct_type, index);
+     res);
+
+  { Get the number of fields. }
+  pub proc struct_get_field_count = (JIT_Struct struct_type) long long int:
+    c_struct_get_field_count(jit_struct of struct_type);
+
+  { FIXME: string -> char* }
+  { FIXME: []JIT_Field fields }
+  { Unions work similarly to structs. }
+  pub proc jit_new_union_type = (JIT_Context ctxt, JIT_Location location,
+                                 string name, int num_fields, []GccJitHandle fields) JIT_Struct:
+    (JIT_Struct res;
+     jit_struct of res := c_context_new_union_type(jit_context of ctxt,
+                                                   jit_location of location,
+                                                   name, num_fields, fields);
+     res);
+
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { FIXME: []JIT_Type params }
+  { Create a function pointer type. }
+  pub proc jit_new_function_ptr_type = (JIT_Context ctxt, JIT_Location location,
+                                        JIT_Type return_type, int num_params,
+                                        []GccJitHandle param_types, bool is_variadic) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_context_new_function_ptr_type(jit_context of ctxt,
+                                                        jit_location of location,
+                                                        jit_type of return_type,
+                                                        num_params, param_types, is_variadic);
+     res);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create a function param. }
+  pub proc jit_new_param = (JIT_Context ctxt, JIT_Location location,
+                            JIT_Type type, string name) JIT_Param:
+    (JIT_Param res;
+     jit_param of res := c_context_new_param(jit_context of ctxt,
+                                             jit_location of location,
+                                             jit_type of type,
+                                             name);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc param_as_object = (JIT_Param param) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_param_as_object(jit_param of param);
+     res);
+
+  { Upcasting to lvalue. }
+  pub proc param_as_lvalue = (JIT_Param param) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_param_as_lvalue(jit_param of param);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to rvalue. }
+  pub proc param_as_rvalue = (JIT_Param param) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_param_as_rvalue(jit_param of param);
+     res);
+
+  { FIXME: string -> char* }
+  { FIXME: []JIT_Param params }
+  { Create a function. }
+  pub proc jit_new_function = (JIT_Context ctxt, JIT_Location location, Function_Kind kind,
+                               JIT_Type return_type, string name, int num_params,
+                               []GccJitHandle params, bool is_variadic) JIT_Function:
+    (JIT_Function res;
+     jit_function of res := c_context_new_function(jit_context of ctxt,
+                                                   jit_location of location,
+                                                   function_kind of kind,
+                                                   jit_type of return_type,
+                                                   name, num_params, params, is_variadic);
+     res);
+
+  { FIXME: string -> char* }
+  { Create a reference to a builtin function. }
+  pub proc jit_get_builtin_function = (JIT_Context ctxt, string name) JIT_Function:
+    (JIT_Function res;
+     jit_function of res := c_context_get_builtin_function(jit_context of ctxt, name);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc function_as_object = (JIT_Function function) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_function_as_object(jit_function of function);
+     res);
+
+  { Get a specific param of a function by index. }
+  pub proc function_get_param = (JIT_Function function, int index) JIT_Param:
+    (JIT_Param res;
+     jit_param of res := c_function_get_param(jit_function of function, index);
+     res);
+
+  { FIXME: string -> char* }
+  { Emit the function in graphviz format. }
+  pub proc function_dump_to_dot = (JIT_Function function, string filename) void:
+    c_function_dump_to_dot(jit_function of function, filename);
+
+  { FIXME: string -> char* }
+  { Create a block within a function. }
+  pub proc function_new_block = (JIT_Function function, string name) JIT_Block:
+    (JIT_Block res;
+     jit_block of res := c_function_new_block(jit_function of function, name);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc block_as_object = (JIT_Block block) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_block_as_object(jit_block of block);
+     res);
+
+  { Which function is this block within? }
+  pub proc block_get_function = (JIT_Block block) JIT_Function:
+    (JIT_Function res;
+     jit_function of res := c_block_get_function(jit_block of block);
+     res);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create a global variable. }
+  pub proc jit_new_global = (JIT_Context ctxt, JIT_Location location,
+                             Global_Kind kind, JIT_Type type, string name) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_context_new_global(jit_context of ctxt,
+                                               jit_location of location,
+                                               global_kind of kind,
+                                               jit_type of type,
+                                               name);
+     res);
+
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { FIXME: []JIT_Field fields, []JIT_Rvalue values }
+  { Create a constructor for a struct as an rvalue. }
+  pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Location location,
+                                         JIT_Type type, long long int num_values,
+                                         []GccJitHandle fields, []GccJitHandle values) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_struct_constructor(jit_context of ctxt,
+                                                           jit_location of location,
+                                                           jit_type of type,
+                                                           num_values, fields, values);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create a constructor for a union as an rvalue. }
+  pub proc jit_new_union_constructor = (JIT_Context ctxt, JIT_Location location,
+                                        JIT_Type type, JIT_Field field,
+                                        JIT_Rvalue value) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_union_constructor(jit_context of ctxt,
+                                                          jit_location of location,
+                                                          jit_type of type,
+                                                          jit_field of field,
+                                                          jit_rvalue of value);
+     res);
+
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { FIXME: []JIT_Rvalue values }
+  { Create a constructor for an array as an rvalue. }
+  pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Location location,
+                                        JIT_Type type, long long int num_values,
+                                        []GccJitHandle values) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_array_constructor(jit_context of ctxt,
+                                                          jit_location of location,
+                                                          jit_type of type,
+                                                          num_values, values);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Set the initial value of a global using an rvalue. }
+  pub proc global_set_initializer_rvalue = (JIT_Lvalue global, JIT_Rvalue rvalue) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_global_set_initializer_rvalue(jit_lvalue of global,
+                                                          jit_rvalue of rvalue);
+     res);
+
+  { FIXME: string -> char* }
+  { Create a reference to a machine-specific builtin function. }
+  pub proc jit_get_target_builtin_function = (JIT_Context ctxt, string name) JIT_Function:
+    (JIT_Function res;
+     jit_function of res := c_context_get_target_builtin_function(jit_context of ctxt, name);
+     res);
+
+  { Set an initial value for an integral array global. }
+  pub proc global_set_initializer = (JIT_Lvalue global, FIXME_VoidPtr blob,
+                                     long long int size) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_global_set_initializer(jit_lvalue of global, blob, size);
+     res);
+
+  { Mark a global variable as read-only. }
+  pub proc global_set_readonly = (JIT_Lvalue global) void:
+    c_global_set_readonly(jit_lvalue of global);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc lvalue_as_object = (JIT_Lvalue lvalue) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_lvalue_as_object(jit_lvalue of lvalue);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to rvalue. }
+  pub proc lvalue_as_rvalue = (JIT_Lvalue lvalue) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_lvalue_as_rvalue(jit_lvalue of lvalue);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc rvalue_as_object = (JIT_Rvalue rvalue) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_rvalue_as_object(jit_rvalue of rvalue);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Get the type of an rvalue. }
+  pub proc rvalue_get_type = (JIT_Rvalue rvalue) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_rvalue_get_type(jit_rvalue of rvalue);
+     res);
+
+  { Integer constants. }
+  pub proc jit_new_rvalue_from_int = (JIT_Context ctxt, JIT_Type type, int value) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_rvalue_from_int(jit_context of ctxt,
+                                                        jit_type of type, value);
+     res);
+
+  { Create an integer constant from a long value. }
+  pub proc jit_new_rvalue_from_long = (JIT_Context ctxt, JIT_Type type, long int value) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_rvalue_from_long(jit_context of ctxt,
+                                                         jit_type of type, value);
+     res);
+
+  { Create a zero constant of the given type. }
+  pub proc jit_new_rvalue_zero = (JIT_Context ctxt, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_zero(jit_context of ctxt, jit_type of type);
+     res);
+
+  { Create a one constant of the given type. }
+  pub proc jit_new_rvalue_one = (JIT_Context ctxt, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_one(jit_context of ctxt, jit_type of type);
+     res);
+
+  { Floating-point constants. }
+  pub proc jit_new_rvalue_from_double = (JIT_Context ctxt, JIT_Type type,
+                                         long real value) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_rvalue_from_double(jit_context of ctxt,
+                                                           jit_type of type, value);
+     res);
+
+  { Pointers. }
+  pub proc jit_new_rvalue_from_ptr = (JIT_Context ctxt, JIT_Type type,
+                                      FIXME_VoidPtr value) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_rvalue_from_ptr(jit_context of ctxt,
+                                                        jit_type of type, value);
+     res);
+
+  { Create a null pointer value of the given type. }
+  pub proc jit_new_null = (JIT_Context ctxt, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_null(jit_context of ctxt, jit_type of type);
+     res);
+
+  { Generates an rvalue that is equal to the size of type. }
+  pub proc jit_new_sizeof = (JIT_Context ctxt, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_sizeof(jit_context of ctxt, jit_type of type);
+     res);
+
+  { Generates an rvalue that is equal to the alignment of type. }
+  pub proc jit_new_alignof = (JIT_Context ctxt, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_alignof(jit_context of ctxt, jit_type of type);
+     res);
+
+  { FIXME: string -> char* }
+  { String literals. }
+  pub proc jit_new_string_literal = (JIT_Context ctxt, string value) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_string_literal(jit_context of ctxt, value);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create an rvalue for a unary operation. }
+  pub proc jit_new_unary_op = (JIT_Context ctxt, JIT_Location location, Unary_Op unary_op,
+                               JIT_Type result_type, JIT_Rvalue rvalue) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_unary_op(jit_context of ctxt,
+                                                 jit_location of location,
+                                                 unary_op of unary_op,
+                                                 jit_type of result_type,
+                                                 jit_rvalue of rvalue);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create an rvalue for a binary operation. }
+  pub proc jit_new_binary_op = (JIT_Context ctxt, JIT_Location location,
+                                Binary_Op binary_op, JIT_Type result_type,
+                                JIT_Rvalue a, JIT_Rvalue b) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_binary_op(jit_context of ctxt,
+                                                  jit_location of location,
+                                                  binary_op of binary_op,
+                                                  jit_type of result_type,
+                                                  jit_rvalue of a,
+                                                  jit_rvalue of b);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Create an rvalue for a comparison. }
+  pub proc jit_new_comparison = (JIT_Context ctxt, JIT_Location location,
+                                 Comparison comparison_op, JIT_Rvalue a, JIT_Rvalue b) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_comparison(jit_context of ctxt,
+                                                   jit_location of location,
+                                                   comparison of comparison_op,
+                                                   jit_rvalue of a,
+                                                   jit_rvalue of b);
+     res);
+
+  { FIXME: []JIT_Rvalue args }
+  { Call of a specific function. }
+  pub proc jit_new_call = (JIT_Context ctxt, JIT_Location location,
+                           JIT_Function function, int numargs, []GccJItHandle args) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_call(jit_context of ctxt,
+                                             jit_location of location,
+                                             jit_function of function,
+                                             numargs, args);
+     res);
+
+  { FIXME: []JIT_Rvalue args }
+  { Call through a function pointer. }
+  pub proc jit_new_call_through_ptr = (JIT_Context ctxt, JIT_Location location,
+                                       JIT_Rvalue fn_ptr, int numargs,
+                                       []GccJitHandle args) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_call_through_ptr(jit_context of ctxt,
+                                                         jit_location of location,
+                                                         jit_rvalue of fn_ptr,
+                                                         numargs, args);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Type-coercion. }
+  pub proc jit_new_cast = (JIT_Context ctxt, JIT_Location location,
+                           JIT_Rvalue rvalue, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_cast(jit_context of ctxt,
+                                             jit_location of location,
+                                             jit_rvalue of rvalue,
+                                             jit_type of type);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Reinterpret a value as another type. }
+  pub proc jit_new_bitcast = (JIT_Context ctxt, JIT_Location location,
+                              JIT_Rvalue rvalue, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_bitcast(jit_context of ctxt,
+                                                jit_location of location,
+                                                jit_rvalue of rvalue,
+                                                jit_type of type);
+     res);
+
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Set the alignment of a variable. }
+  pub proc lvalue_set_alignment = (JIT_Lvalue lvalue, int alignment) void:
+    c_lvalue_set_alignment(jit_lvalue of lvalue, alignment);
+
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Get the alignment of a variable. }
+  pub proc lvalue_get_alignment = (JIT_Lvalue lvalue) int:
+    c_lvalue_get_alignment(jit_lvalue of lvalue);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Create an lvalue for array access. }
+  pub proc jit_new_array_access = (JIT_Context ctxt, JIT_Location location,
+                                   JIT_Rvalue ptr, JIT_Rvalue index) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_context_new_array_access(jit_context of ctxt,
+                                                     jit_location of location,
+                                                     jit_rvalue of ptr,
+                                                     jit_rvalue of index);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Given a vector rvalue, cast it to the type ``type``, doing an element-wise conversion. }
+  pub proc jit_convert_vector = (JIT_Context ctxt, JIT_Location location,
+                                 JIT_Rvalue vector, JIT_Type type) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_convert_vector(jit_context of ctxt,
+                                                   jit_location of location,
+                                                   jit_rvalue of vector,
+                                                   jit_type of type);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Build a permutation vector rvalue from an 3 arrays of elements. }
+  pub proc jit_new_rvalue_vector_perm = (JIT_Context ctxt, JIT_Location location,
+                                         JIT_Rvalue a, JIT_Rvalue b, JIT_Rvalue mask) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_rvalue_vector_perm(jit_context of ctxt,
+                                                           jit_location of location,
+                                                           jit_rvalue of a,
+                                                           jit_rvalue of b,
+                                                           jit_rvalue of mask);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Get the element at INDEX in VECTOR. }
+  pub proc jit_new_vector_access = (JIT_Context ctxt, JIT_Location location,
+                                    JIT_Rvalue vector, JIT_Rvalue index) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_context_new_vector_access(jit_context of ctxt,
+                                                      jit_location of location,
+                                                      jit_rvalue of vector,
+                                                      jit_rvalue of index);
+     res);
+
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Accessing a field of an lvalue of struct type, analogous to: (EXPR).field = ...;. }
+  pub proc lvalue_access_field = (JIT_Lvalue lvalue, JIT_Location location,
+                                  JIT_Field field) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_lvalue_access_field(jit_lvalue of lvalue,
+                                                jit_location of location,
+                                                jit_field of field);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Accessing a field of an rvalue of struct type, analogous to: (EXPR).field. }
+  pub proc rvalue_access_field = (JIT_Rvalue rvalue, JIT_Location location,
+                                  JIT_Field field) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_rvalue_access_field(jit_rvalue of rvalue,
+                                                jit_location of location,
+                                                jit_field of field);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Accessing a field of an rvalue of pointer type, analogous to: (*EXPR).FIELD. }
+  pub proc rvalue_dereference_field = (JIT_Rvalue rvalue, JIT_Location location,
+                                       JIT_Field field) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_rvalue_dereference_field(jit_rvalue of rvalue,
+                                                     jit_location of location,
+                                                     jit_field of field);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Dereferencing a pointer; analogous to: (EXPR). }
+  pub proc rvalue_dereference = (JIT_Rvalue rvalue, JIT_Location location) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_rvalue_dereference(jit_rvalue of rvalue, jit_location of location);
+     res);
+
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Taking the address of an lvalue; analogous to: &(EXPR). }
+  pub proc lvalue_get_address = (JIT_Lvalue lvalue, JIT_Location location) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_lvalue_get_address(jit_lvalue of lvalue, jit_location of location);
+     res);
+
+  { Set the thread-local storage model of a global variable. }
+  pub proc lvalue_set_tls_model = (JIT_Lvalue lvalue, Tls_Model model) void:
+    c_lvalue_set_tls_model(jit_lvalue of lvalue,
+                           tls_model of model);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Set the link section of a global variable; analogous to: __attribute__((section(".name"))). }
+  pub proc lvalue_set_link_section = (JIT_Lvalue lvalue, string section) void:
+    c_lvalue_set_link_section(jit_lvalue of lvalue, section);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Make this variable a register variable and set its register name. }
+  pub proc lvalue_set_register_name = (JIT_Lvalue lvalue, string name) void:
+    c_lvalue_set_register_name(jit_lvalue of lvalue, name);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
+  { Create a local variable within a function. }
+  pub proc function_new_local = (JIT_Function function, JIT_Location location,
+                                 JIT_Type type, string name) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_function_new_local(jit_function of function,
+                                               jit_location of location,
+                                               jit_type of type, name);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Create a temporary local variable. }
+  pub proc function_new_temp = (JIT_Function function, JIT_Location location,
+                                JIT_Type rvalue) JIT_Lvalue:
+    (JIT_Lvalue res;
+     jit_lvalue of res := c_function_new_temp(jit_function of function,
+                                              jit_location of location,
+                                              jit_type of rvalue);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Add evaluation of an rvalue, discarding the result (e.g. }
+  pub proc block_add_eval = (JIT_Block block, JIT_Location location, JIT_Rvalue rvalue) void:
+    c_block_add_eval(jit_block of block,
+                     jit_location of location,
+                     jit_rvalue of rvalue);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Add evaluation of an rvalue, assigning the result to the given lvalue. }
+  pub proc block_add_assignment = (JIT_Block block, JIT_Location location,
+                                   JIT_Lvalue lvalue, JIT_Rvalue rvalue) void:
+    c_block_add_assignment(jit_block of block,
+                           jit_location of location,
+                           jit_lvalue of lvalue,
+                           jit_rvalue of rvalue);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Add evaluation of an rvalue, using the result to modify an lvalue. }
+  pub proc block_add_assignment_op = (JIT_Block block, JIT_Location location,
+                                      JIT_Lvalue lvalue, Binary_Op binary_op,
+                                      JIT_Rvalue rvalue) void:
+    c_block_add_assignment_op(jit_block of block,
+                              jit_location of location,
+                              jit_lvalue of lvalue,
+                              binary_op of binary_op,
+                              jit_rvalue of rvalue);
+
+  { FIXME: string -> char* }
+  { Add a no-op textual comment to the internal representation of the code. }
+  pub proc block_add_comment = (JIT_Block block, JIT_Location location, string text) void:
+    c_block_add_comment(jit_block of block,
+                        jit_location of location,
+                        text);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Terminate a block by adding evaluation of an rvalue, branching on the result to the
+    appropriate successor block. }
+  pub proc block_end_with_conditional = (JIT_Block block, JIT_Location location,
+                                         JIT_Rvalue boolval, JIT_Block on_true,
+                                         JIT_Block on_false) void:
+    c_block_end_with_conditional(jit_block of block,
+                                 jit_location of location,
+                                 jit_rvalue of boolval,
+                                 jit_block of on_true,
+                                 jit_block of on_false);
+
+  { Terminate a block by adding a jump to the given target block. }
+  pub proc block_end_with_jump = (JIT_Block block, JIT_Location location, JIT_Block target) void:
+    c_block_end_with_jump(jit_block of block,
+                          jit_location of location,
+                          jit_block of target);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Terminate a block by adding evaluation of an rvalue, returning the value. }
+  pub proc block_end_with_return = (JIT_Block block, JIT_Location location, JIT_Rvalue rvalue) void:
+    c_block_end_with_return(jit_block of block,
+                            jit_location of location,
+                            jit_rvalue of rvalue);
+
+  { Terminate a block by adding a valueless return, for functions with `void` return type. }
+  pub proc block_end_with_void_return = (JIT_Block block, JIT_Location location) void:
+    c_block_end_with_void_return(jit_block of block,
+                                 jit_location of location);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Create a new gcc_jit_case instance for use in a switch statement. }
+  pub proc jit_new_case = (JIT_Context ctxt, JIT_Rvalue min_value,
+                           JIT_Rvalue max_value, JIT_Block dest_block) JIT_Case:
+    (JIT_Case res;
+     jit_case_ of res := c_context_new_case(jit_context of ctxt,
+                                            jit_rvalue of min_value,
+                                            jit_rvalue of max_value,
+                                            jit_block of dest_block);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc case_as_object = (JIT_Case case_) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_case_as_object(jit_case of case_);
+     res);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { FIXME: []JIT_Case cases }
+  { Terminate a block by adding evaluation of an rvalue, then performing a multiway branch. }
+  pub proc block_end_with_switch = (JIT_Block block, JIT_Location location,
+                                    JIT_Rvalue expr, JIT_Block default_block,
+                                    int num_cases, []GccJitHandle cases) void:
+    c_block_end_with_switch(jit_block of block,
+                            jit_location of location,
+                            jit_rvalue of expr,
+                            jit_block of default_block,
+                            num_cases, cases);
+
+  { Given an existing JIT context, create a child context. }
+  pub proc jit_new_child_context = (JIT_Context ctxt) JIT_Context:
+    (JIT_Context res;
+     jit_context of res := c_context_new_child_context(jit_context of ctxt);
+     res);
+
+  { FIXME: string -> char* }
+  { Write C source code into "path" that can be compiled into a self-contained executable (i.e. }
+  pub proc jit_dump_reproducer_to_file = (JIT_Context ctxt, string path) void:
+    c_context_dump_reproducer_to_file(jit_context of ctxt, path);
+
+  { FIXME: string -> char* }
+  { FIXME: ??? -> out char** }
+  { Enable the dumping of a specific set of internal state from the compilation,
+    capturing the result in-memory as a buffer. }
+  pub proc jit_enable_dump = (JIT_Context ctxt, string dump_name, FIXME_StringPtr out_ptr) void:
+    c_context_enable_dump(jit_context of ctxt,
+                          dump_name, out_ptr);
+
+  { Create a gcc_jit_timer instance, and start timing. }
+  pub proc timer_new = JIT_Timer:
+    (JIT_Timer res;
+     jit_timer of res := c_timer_new;
+     res);
+
+  { Release a gcc_jit_timer instance. }
+  pub proc timer_release = (JIT_Timer timer) void:
+    c_timer_release(jit_timer of timer);
+
+  { Associate a gcc_jit_timer instance with a context. }
+  pub proc jit_set_timer = (JIT_Context ctxt, JIT_Timer timer) void:
+    c_context_set_timer(jit_context of ctxt, jit_timer of timer);
+
+  { Get the timer associated with a context (if any). }
+  pub proc jit_get_timer = (JIT_Context ctxt) JIT_Timer:
+    (JIT_Timer res;
+     jit_timer of res := c_context_get_timer(jit_context of ctxt);
+     res);
+
+  { FIXME: string -> char* }
+  { Push the given item onto the timing stack. }
+  pub proc timer_push = (JIT_Timer timer, string name) void:
+    c_timer_push(jit_timer of timer, name);
+
+  { FIXME: string -> char* }
+  { Pop the top item from the timing stack. }
+  pub proc timer_pop = (JIT_Timer timer, string name) void:
+    c_timer_pop(jit_timer of timer, name);
+
+  { FIXME: int -> FILE }
+  { Print timing information to the given stream about activity since the timer was started. }
+  pub proc timer_print = (JIT_Timer timer, FIXME_FilePtr fd_out) void:
+    c_timer_print(jit_timer of timer, fd_out);
+
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Mark/clear a call as needing tail-call optimization. }
+  pub proc rvalue_set_require_tail_call = (JIT_Rvalue rvalue, bool value) void:
+    c_rvalue_set_bool_require_tail_call(jit_rvalue of rvalue, value);
+
+  { Given type `T`, get type: `T __attribute__ ((aligned (ALIGNMENT_IN_BYTES)))`
+    The alignment must be a power of two. }
+  pub proc type_get_aligned = (JIT_Type type, long long int alignment) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_get_aligned(jit_type of type, alignment);
+     res);
+
+  { Given type `T`, get type: `T __attribute__ ((vector_size (sizeof(T) * num_units))`
+    "type" must be integral/floating point; "num_units" must be a power of two. }
+  pub proc type_get_vector = (JIT_Type type, long long int num_units) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_get_vector(jit_type of type, num_units);
+     res);
+
+  { Get the address of a function as an rvalue, of function pointer type. }
+  pub proc function_get_address = (JIT_Function function, JIT_Location location) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_function_get_address(jit_function of function,
+                                                 jit_location of location);
+     res);
+
+  { FIXME: []JIT_Rvalue elements }
+  { Build a vector rvalue from an array of elements. }
+  pub proc jit_new_rvalue_from_vector = (JIT_Context ctxt, JIT_Location location,
+                                         JIT_Type type, long long int num_elements,
+                                         []GccJitHandle  elements) JIT_Rvalue:
+    (JIT_Rvalue res;
+     jit_rvalue of res := c_context_new_rvalue_from_vector(jit_context of ctxt,
+                                                           jit_location of location,
+                                                           jit_type of type,
+                                                           num_elements, elements);
+     res);
+
+  { Functions to retrieve libgccjit version. }
+  pub proc jit_version_major = int:
+    c_version_major;
+
+  { Retrieve the libgccjit minor version. }
+  pub proc jit_version_minor = int:
+    c_version_minor;
+
+  { Retrieve the libgccjit patch version. }
+  pub proc jit_version_patchlevel = int:
+     c_version_patchlevel;
+
+  { FIXME: string -> char* }
+  { Create a gcc_jit_extended_asm for an extended asm statement with no control flow. }
+  pub proc block_add_extended_asm = (JIT_Block block, JIT_Location location,
+                                     string asm_template) JIT_Extended_Asm:
+    (JIT_Extended_Asm res;
+     jit_extended_asm of res := c_block_add_extended_asm(jit_block of block,
+                                                         jit_location of location,
+                                                         asm_template);
+     res);
+
+  { FIXME: string -> char* }
+  { FIXME: []JIT_Block blocks }
+  { Create a gcc_jit_extended_asm for an extended asm statement that may perform jumps,
+    and use it to terminate the given block. }
+  pub proc block_end_with_extended_asm_goto = (JIT_Block block, JIT_Location location,
+                                               string asm_template, int num_goto_blocks,
+                                               []GccJitHandle goto_blocks,
+                                               JIT_Block fallthrough_block) JIT_Extended_Asm:
+    (JIT_Extended_Asm res;
+     jit_extended_asm of res := c_block_end_with_extended_asm_goto(jit_block of block,
+                                                                   jit_location of location,
+                                                                   asm_template,
+                                                                   num_goto_blocks,
+                                                                   goto_blocks,
+                                                                   jit_block of fallthrough_block);
+     res);
+
+  { FIXME: unify with union(JIT_xxx) }
+  { Upcasting to object. }
+  pub proc extended_asm_as_object = (JIT_Extended_Asm asm) JIT_Object:
+    (JIT_Object res;
+     jit_object of res := c_extended_asm_as_object(jit_extended_asm of asm);
+     res);
+
+  { Set whether the gcc_jit_extended_asm has side-effects,
+    equivalent to the `volatile` qualifier in C's extended asm syntax. }
+  pub proc extended_asm_set_volatile_flag = (JIT_Extended_Asm extended_asm, bool value) void:
+    c_extended_asm_set_volatile_flag(jit_extended_asm of extended_asm, value);
+
+  { Set the equivalent of the `inline` qualifier in C's extended asm syntax. }
+  pub proc extended_asm_set_inline_flag = (JIT_Extended_Asm extended_asm, bool value) void:
+    c_extended_asm_set_inline_flag(jit_extended_asm of extended_asm, value);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Add an output operand to the extended asm statement. }
+  pub proc extended_asm_add_output_operand = (JIT_Extended_Asm extended_asm, string symbolic_name,
+                                              string constraint, JIT_Lvalue output) void:
+    c_extended_asm_add_output_operand(jit_extended_asm of extended_asm,
+                                      symbolic_name, constraint,
+                                      jit_lvalue of output);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Add an input operand to the extended asm statement. }
+  pub proc extended_asm_add_input_operand = (JIT_Extended_Asm extended_asm, string symbolic_name,
+                                             string constraint, JIT_Rvalue input) void:
+    c_extended_asm_add_input_operand(jit_extended_asm of extended_asm,
+                                     symbolic_name, constraint,
+                                     jit_rvalue of input);
+
+  { FIXME: string -> char* }
+  { Add "clobber" to the list of registers clobbered by the extended asm statement. }
+  pub proc extended_asm_add_clobber = (JIT_Extended_Asm extended_asm, string clobber) void:
+    c_extended_asm_add_clobber(jit_extended_asm of extended_asm, clobber);
+
+  { FIXME: string -> char* }
+  { Add "asm_stmts", a set of top-level asm statements,
+    analogous to those created by GCC's basic asm syntax in C at file scope. }
+  pub proc jit_add_top_level_asm = (JIT_Context ctxt, JIT_Location location, string asm_stmts) void:
+    c_context_add_top_level_asm(jit_context of ctxt,
+                                jit_location of location, asm_stmts);
+
+  { Get the return type of a function. }
+  pub proc function_get_return_type = (JIT_Function function) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_function_get_return_type(jit_function of function);
+     res);
+
+  { Get the number of params of a function. }
+  pub proc function_get_param_count = (JIT_Function function) long long int:
+    c_function_get_param_count(jit_function of function);
+
+  { Get the element type of an array type or NULL if it's not an array. }
+  pub proc type_dyncast_array = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_dyncast_array(jit_type of type);
+     res);
+
+  { Return non-zero if the type is a bool. }
+  pub proc type_is_bool = (JIT_Type type) int:
+    c_type_is_bool(jit_type of type);
+
+  { Return the function type if it is one or NULL. }
+  pub proc type_dyncast_function_ptr_type = (JIT_Type type) JIT_Function_Type:
+    (JIT_Function_Type res;
+     jit_function_type of res := c_type_dyncast_function_ptr_type(jit_type of type);
+     res);
+
+  { Given a function type, return its return type. }
+  pub proc function_type_get_return_type = (JIT_Function_Type function_type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_function_type_get_return_type(jit_function_type of function_type);
+     res);
+
+  { Given a function type, return its number of parameters. }
+  pub proc function_type_get_param_count = (JIT_Function_Type function_type) long long int:
+    c_function_type_get_param_count(jit_function_type of function_type);
+
+  { Given a function type, return the type of the specified parameter. }
+  pub proc function_type_get_param_type = (JIT_Function_Type function_type,
+                                           long long int index) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_function_type_get_param_type(jit_function_type of function_type, index);
+     res);
+
+  { Return non-zero if the type is an integral. }
+  pub proc type_is_integral = (JIT_Type type) int:
+    c_type_is_integral(jit_type of type);
+
+  { Return non-zero if the type is a floating point. }
+  pub proc type_is_floating_point = (JIT_Type type) int:
+    c_type_is_floating_point(jit_type of type);
+
+  { Return the type pointed by the pointer type or NULL if it's not a pointer. }
+  pub proc type_is_pointer = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_is_pointer(jit_type of type);
+     res);
+
+  { Given a type, return a dynamic cast to a vector type or NULL. }
+  pub proc type_is_vector = (JIT_Type type) JIT_Vector_Type:
+    (JIT_Vector_Type res;
+     jit_vector_type of res := c_type_dyncast_vector(jit_type of type);
+     res);
+
+  { Given a type, return a dynamic cast to a struct type or NULL. }
+  pub proc type_is_struct = (JIT_Type type) JIT_Struct:
+    (JIT_Struct res;
+     jit_struct of res := c_type_is_struct(jit_type of type);
+     res);
+
+  { Given a vector type, return the number of units it contains. }
+  pub proc vector_type_get_num_units = (JIT_Vector_Type vector_type) long long int:
+    c_vector_type_get_num_units(jit_vector_type of vector_type);
+
+  { Given a vector type, return the type of its elements. }
+  pub proc vector_type_get_element_type = (JIT_Vector_Type vector_type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_vector_type_get_element_type(jit_vector_type of vector_type);
+     res);
+
+  { Given a type, return the unqualified type, removing `const`, `volatile`,
+    and alignment qualifiers. }
+  pub proc type_unqualified = (JIT_Type type) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := c_type_unqualified(jit_type of type);
+     res);
+
+  { Add an attribute to a function. }
+  pub proc function_add_attribute = (JIT_Function function, Fn_Attribute attribute) void:
+    c_function_add_attribute(jit_function of function,
+                             fn_attribute of attribute);
+
+  { FIXME: string -> char* }
+  { Add a string attribute to a function. }
+  pub proc function_add_string_attribute = (JIT_Function function,
+                                            Fn_Attribute attribute,
+                                            string value) void:
+    c_function_add_string_attribute(jit_function of function,
+                                    fn_attribute of attribute,
+                                    value);
+
+  { Create a gcc_jit_target_info instance. }
+  pub proc jit_get_target_info = (JIT_Context ctxt) JIT_Targetinfo:
+    (JIT_Targetinfo res;
+     jit_targetinfo of res := c_context_get_target_info(jit_context of ctxt);
+     res);
+
+  { Release a gcc_jit_target_info instance. }
+  pub proc target_info_release = (JIT_Targetinfo target_info) void:
+    c_target_info_release(jit_targetinfo of target_info);
+
+  { FIXME: string -> char* }
+  { Returns non-zero if FEATURE is supported by the specified target. }
+  pub proc target_info_cpu_supports = (JIT_Targetinfo target_info, string feature) bool:
+    c_target_info_cpu_supports(jit_targetinfo of target_info, feature);
+
+  { FIXME: char* -> string }
+  { Returns the ARCH of the currently running CPU. }
+  pub proc target_info_arch = (JIT_Targetinfo target_info) string:
+    c_target_info_arch(jit_targetinfo of target_info);
+
+  { Returns non-zero if the target natively supports the target-dependent type TYPE. }
+  pub proc target_info_supports_target_dependent_type = (JIT_Targetinfo target_info,
+                                                         CType type) bool:
+    c_target_info_supports_target_dependent_type(jit_targetinfo of target_info,
+                                                 ctype of type);
+
+  { FIXME: Use []int values? }
+  { Add an integer array attribute to a function. }
+  pub proc function_add_integer_array_attribute = (JIT_Function function, Fn_Attribute attribute,
+                                                   ref int values, long long int length) void:
+    c_function_add_integer_array_attribute(jit_function of function,
+                                           fn_attribute of attribute,
+                                           values, length);
+
+  { FIXME: string -> char* }
+  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
+  { Add a string attribute to a variable. }
+  pub proc lvalue_add_string_attribute = (JIT_Lvalue lvalue, Var_Attribute attribute,
+                                          string value) void:
+    c_lvalue_add_string_attribute(jit_lvalue of lvalue,
+                                  var_attribute of attribute,
+                                  value);
+
+  { FIXME: string -> char* }
+  { Set the output identifier for the context. }
+  pub proc jit_set_output_ident = (JIT_Context ctxt, string ident) void:
+    c_context_set_output_ident(jit_context of ctxt, ident);
+
+  { Abort when an unsupported target builtin is used. }
+  pub proc jit_set_abort_on_unsupported_target_builtin = (JIT_Context ctxt) void:
+    c_context_set_abort_on_unsupported_target_builtin(jit_context of ctxt);
+
+
   { ////////////////////////////////////////////////////////////////////////// }
   { Private definitions }
   { ////////////////////////////////////////////////////////////////////////// }
@@ -97,7 +1609,7 @@ def
   proc (GccJitHandle) long long int c_struct_get_field_count = nest C "gcc_jit_struct_get_field_count";
   proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "gcc_jit_context_new_union_type";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle, int) GccJitHandle c_context_new_function_ptr_type = nest C "gcc_jit_context_new_function_ptr_type";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle, bool) GccJitHandle c_context_new_function_ptr_type = nest C "gcc_jit_context_new_function_ptr_type";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_param = nest C "gcc_jit_context_new_param";
   proc (GccJitHandle) GccJitHandle c_param_as_object = nest C "gcc_jit_param_as_object";
