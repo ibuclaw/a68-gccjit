@@ -1007,15 +1007,20 @@ def
                                                 jit_type of type);
      res);
 
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Set the alignment of a variable. }
-  pub proc lvalue_set_alignment = (JIT_Lvalue lvalue, int alignment) void:
-    c_lvalue_set_alignment(jit_lvalue of lvalue, alignment);
+  pub proc lvalue_set_alignment = (JIT_Lvalue_Variant decl, int alignment) void:
+    c_lvalue_set_alignment(jit_lvalue of (case decl in
+                                          (JIT_Param param): as_lvalue(param),
+                                          (JIT_Lvalue lvalue): lvalue
+                                          esac),
+                           alignment);
 
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Get the alignment of a variable. }
-  pub proc lvalue_get_alignment = (JIT_Lvalue lvalue) int:
-    c_lvalue_get_alignment(jit_lvalue of lvalue);
+  pub proc lvalue_get_alignment = (JIT_Lvalue_Variant decl) int:
+    c_lvalue_get_alignment(jit_lvalue of (case decl in
+                                          (JIT_Param param): as_lvalue(param),
+                                          (JIT_Lvalue lvalue): lvalue
+                                          esac));
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
   { Create an lvalue for array access. }
@@ -1063,12 +1068,14 @@ def
                                                       jit_rvalue of index);
      res);
 
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Accessing a field of an lvalue of struct type, analogous to: (EXPR).field = ...;. }
-  pub proc lvalue_access_field = (JIT_Lvalue lvalue, JIT_Location location,
+  pub proc lvalue_access_field = (JIT_Lvalue_Variant expr, JIT_Location location,
                                   JIT_Field field) JIT_Lvalue:
     (JIT_Lvalue res;
-     jit_lvalue of res := c_lvalue_access_field(jit_lvalue of lvalue,
+     jit_lvalue of res := c_lvalue_access_field(jit_lvalue of (case expr in
+                                                               (JIT_Param param): as_lvalue(param),
+                                                               (JIT_Lvalue lvalue): lvalue
+                                                               esac),
                                                 jit_location of location,
                                                 jit_field of field);
      res);
@@ -1100,11 +1107,14 @@ def
      jit_lvalue of res := c_rvalue_dereference(jit_rvalue of rvalue, jit_location of location);
      res);
 
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Taking the address of an lvalue; analogous to: &(EXPR). }
-  pub proc lvalue_get_address = (JIT_Lvalue lvalue, JIT_Location location) JIT_Rvalue:
+  pub proc lvalue_get_address = (JIT_Lvalue_Variant expr, JIT_Location location) JIT_Rvalue:
     (JIT_Rvalue res;
-     jit_rvalue of res := c_lvalue_get_address(jit_lvalue of lvalue, jit_location of location);
+     jit_rvalue of res := c_lvalue_get_address(jit_lvalue of (case expr in
+                                                              (JIT_Param param): as_lvalue(param),
+                                                              (JIT_Lvalue lvalue): lvalue
+                                                              esac),
+                                               jit_location of location);
      res);
 
   { Set the thread-local storage model of a global variable. }
@@ -1113,13 +1123,11 @@ def
                            tls_model of model);
 
   { FIXME: string -> char* }
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Set the link section of a global variable; analogous to: __attribute__((section(".name"))). }
   pub proc lvalue_set_link_section = (JIT_Lvalue lvalue, string section) void:
     c_lvalue_set_link_section(jit_lvalue of lvalue, section);
 
   { FIXME: string -> char* }
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Make this variable a register variable and set its register name. }
   pub proc lvalue_set_register_name = (JIT_Lvalue lvalue, string name) void:
     c_lvalue_set_register_name(jit_lvalue of lvalue, name);
@@ -1153,24 +1161,28 @@ def
                      jit_rvalue of rvalue);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Add evaluation of an rvalue, assigning the result to the given lvalue. }
   pub proc block_add_assignment = (JIT_Block block, JIT_Location location,
-                                   JIT_Lvalue lvalue, JIT_Rvalue rvalue) void:
+                                   JIT_Lvalue_Variant lhs, JIT_Rvalue rvalue) void:
     c_block_add_assignment(jit_block of block,
                            jit_location of location,
-                           jit_lvalue of lvalue,
+                           jit_lvalue of (case lhs in
+                                          (JIT_Param param): as_lvalue(param),
+                                          (JIT_Lvalue lvalue): lvalue
+                                          esac),
                            jit_rvalue of rvalue);
 
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Add evaluation of an rvalue, using the result to modify an lvalue. }
   pub proc block_add_assignment_op = (JIT_Block block, JIT_Location location,
-                                      JIT_Lvalue lvalue, Binary_Op binary_op,
+                                      JIT_Lvalue_Variant lhs, Binary_Op binary_op,
                                       JIT_Rvalue rvalue) void:
     c_block_add_assignment_op(jit_block of block,
                               jit_location of location,
-                              jit_lvalue of lvalue,
+                              jit_lvalue of (case lhs in
+                                             (JIT_Param param): as_lvalue(param),
+                                             (JIT_Lvalue lvalue): lvalue
+                                             esac),
                               binary_op of binary_op,
                               jit_rvalue of rvalue);
 
@@ -1377,13 +1389,15 @@ def
     c_extended_asm_set_inline_flag(jit_extended_asm of extended_asm, value);
 
   { FIXME: string -> char* }
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Add an output operand to the extended asm statement. }
   pub proc extended_asm_add_output_operand = (JIT_Extended_Asm extended_asm, string symbolic_name,
-                                              string constraint, JIT_Lvalue output) void:
+                                              string constraint, JIT_Lvalue_Variant output) void:
     c_extended_asm_add_output_operand(jit_extended_asm of extended_asm,
                                       symbolic_name, constraint,
-                                      jit_lvalue of output);
+                                      jit_lvalue of (case output in
+                                                     (JIT_Param param): as_lvalue(param),
+                                                     (JIT_Lvalue lvalue): lvalue
+                                                     esac));
 
   { FIXME: string -> char* }
   { FIXME: union(JIT_Rvalue, JIT_Lvalue, JIT_Param) ptr and upcast }
@@ -1541,11 +1555,13 @@ def
                                            values, length);
 
   { FIXME: string -> char* }
-  { FIXME: union(JIT_Lvalue, JIT_Param) ptr and upcast }
   { Add a string attribute to a variable. }
-  pub proc lvalue_add_string_attribute = (JIT_Lvalue lvalue, Var_Attribute attribute,
+  pub proc lvalue_add_string_attribute = (JIT_Lvalue_Variant decl, Var_Attribute attribute,
                                           string value) void:
-    c_lvalue_add_string_attribute(jit_lvalue of lvalue,
+    c_lvalue_add_string_attribute(jit_lvalue of (case decl in
+                                                 (JIT_Param param): as_lvalue(param),
+                                                 (JIT_Lvalue lvalue): lvalue
+                                                 esac),
                                   var_attribute of attribute,
                                   value);
 
