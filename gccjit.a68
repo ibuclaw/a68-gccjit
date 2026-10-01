@@ -472,14 +472,12 @@ def
   pub proc jit_get_last_error = (JIT_Context ctxt) string:
     c_context_get_last_error(jit_context of ctxt);
 
-  { FIXME: Return a proc }
   { Locate a function within the built machine code. }
-  pub proc result_get_code = (JIT_Result result, string name) FIXME_VoidPtr:
+  pub proc result_get_code = (JIT_Result result, string name) proc void:
     c_result_get_code(jit_result of result, name);
 
-  { FIXME: Return a ref to something }
   { Locate a global within the built machine code. }
-  pub proc result_get_global = (JIT_Result result, string name) FIXME_VoidPtr:
+  pub proc result_get_global = (JIT_Result result, string name) ref int:
     c_result_get_global(jit_result of result, name);
 
   { Release the result and unload the built shared library. }
@@ -1606,8 +1604,8 @@ def
   proc (GccJitHandle) string c_context_get_first_error = nest C "gcc_jit_context_get_first_error";
   proc (GccJitHandle) string c_context_get_last_error = nest C "gcc_jit_context_get_last_error";
 
-  proc (GccJitHandle, string) FIXME_VoidPtr c_result_get_code = nest C "gcc_jit_result_get_code";
-  proc (GccJitHandle, string) FIXME_VoidPtr c_result_get_global = nest C "gcc_jit_result_get_global";
+  proc (GccJitHandle, string) proc void c_result_get_code = nest C "gcc_jit_result_get_code";
+  proc (GccJitHandle, string) ref int c_result_get_global = nest C "gcc_jit_result_get_global";
   proc (GccJitHandle) void c_result_release = nest C "gcc_jit_result_release";
 
   proc (GccJitHandle) GccJitHandle c_object_get_context = nest C "gcc_jit_object_get_context";
