@@ -39,27 +39,27 @@ def
            JIT_Timer         = struct (GccJitHandle jit_timer);
 
   { Options taking string values. }
-  pub mode Str_Option = struct (int str_option);
-  pub Str_Option option_progname,
-                 option_special_chars_in_func_names;
+  {{pub}} mode Str_Option = struct (int str_option);
+  {{pub}} Str_Option option_progname,
+                     option_special_chars_in_func_names;
   str_option of option_progname := 0;
   str_option of option_special_chars_in_func_names := 1;
 
   { Options taking int values. }
-  pub mode Int_Option = struct (int int_option);
-  pub Int_Option option_optimization_level;
+  {{pub}} mode Int_Option = struct (int int_option);
+  {{pub}} Int_Option option_optimization_level;
   int_option of option_optimization_level := 0;
 
   { Options taking boolean values. }
-  pub mode Bool_Option = struct (int bool_option);
-  pub Bool_Option option_debuginfo,
-                  option_dump_initial_tree,
-                  option_dump_initial_gimple,
-                  option_dump_generated_code,
-                  option_dump_summary,
-                  option_dump_everything,
-                  option_selfcheck_gc,
-                  option_keep_intermediates;
+  {{pub}} mode Bool_Option = struct (int bool_option);
+  {{pub}} Bool_Option option_debuginfo,
+                      option_dump_initial_tree,
+                      option_dump_initial_gimple,
+                      option_dump_generated_code,
+                      option_dump_summary,
+                      option_dump_everything,
+                      option_selfcheck_gc,
+                      option_keep_intermediates;
   bool_option of option_debuginfo := 0;
   bool_option of option_dump_initial_tree := 1;
   bool_option of option_dump_initial_gimple := 2;
@@ -321,22 +321,73 @@ def
   pub proc jit_release = (JIT_Context ctxt) void:
     c_context_release(jit_context of ctxt);
 
-  { Set a string option on the given context. }
-  pub proc set_str_option = (JIT_Context ctxt, Str_Option option, string value) void:
+  { FIXME: string -> char* }
+  { Set the name of the program, for use as a prefix when printing error messages to stderr. }
+  pub proc set_program_name = (JIT_Context ctxt, string value) void:
     c_context_set_str_option(jit_context of ctxt,
-                             str_option of option,
+                             str_option of option_progname,
                              value);
 
-  { Set an int option on the given context. }
-  pub proc set_int_option = (JIT_Context ctxt, Int_Option option, int value) void:
+  { FIXME: string -> char* }
+  { Set which special characters are allowed in function names. }
+  pub proc set_special_chars_in_func_names = (JIT_Context ctxt, string value) void:
+    c_context_set_str_option(jit_context of ctxt,
+                             str_option of option_special_chars_in_func_names,
+                             value);
+
+  { Set how much to optimize the code. }
+  pub proc set_optimization_level = (JIT_Context ctxt, int value) void:
     c_context_set_int_option(jit_context of ctxt,
-                             int_option of option,
+                             int_option of option_optimization_level,
                              value);
 
-  { Set a boolean option on the given context. }
-  pub proc set_bool_option = (JIT_Context ctxt, Bool_Option option, bool value) void:
+  { Enable debug info generation. }
+  pub proc set_debuginfo = (JIT_Context ctxt, bool value) void:
     c_context_set_bool_option(jit_context of ctxt,
-                              bool_option of option,
+                              bool_option of option_debuginfo,
+                              value);
+
+  { Enable dumps of libgccjit's initial tree representation of your code to stderr. }
+  pub proc set_dump_initial_tree = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_dump_initial_tree,
+                              value);
+
+  { Enable dumps of libgccjit's gimple representation of your code to stderr. }
+  pub proc set_dump_initial_gimple = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_dump_initial_gimple,
+                              value);
+
+  { Enable dumps of libgccjit's final generated code to stderr. }
+  pub proc set_dump_generated_code = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_dump_generated_code,
+                              value);
+
+  { Enable printing of information to stderr on the actions libgccjit is performing. }
+  pub proc set_dump_summary = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_dump_summary,
+                              value);
+
+  { Enable dumping of copius amounts of information on what libgccjit is doing to
+    various files within a temporary directory. }
+  pub proc set_dump_everything = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_dump_everything,
+                              value);
+
+  { Enable aggressive runs of libgccjit's garbage collector. }
+  pub proc set_selfcheck_gc = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_selfcheck_gc,
+                              value);
+
+  { Disable clean up of intermediate files written to the filesystem. }
+  pub proc set_keep_intermediates = (JIT_Context ctxt, bool value) void:
+    c_context_set_bool_option(jit_context of ctxt,
+                              bool_option of option_keep_intermediates,
                               value);
 
   { Disable errors for unreachable blocks. }
