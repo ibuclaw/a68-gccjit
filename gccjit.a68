@@ -1,0 +1,256 @@
+{ An Algol68 API for libgccjit, purely as struct wrapper functions. }
+{ Copyright (C) 2026 Iain Buclaw.
+
+  This file is part of a68-gccjit.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>
+}
+module Gccjit =
+def
+  { ////////////////////////////////////////////////////////////////////////// }
+  { Private definitions }
+  { ////////////////////////////////////////////////////////////////////////// }
+  { These are the formal hole definitions taken from libgccjit.h
+
+    Some of the deliberate choices made for Algol68 include:
+    - All `structs` within the C API are opaque and mapped to a `ref struct`
+      named "GccJitHandle".  Modes that enforce the correct reference (pointer)
+      is passed is done in the public interface.
+    - All C `enums` are mapped to `int`, modes that enforce which kind of
+      enum should be passed is done in the public interface.
+    - Some C `int` parameters are mapped to `bool` where the accepted input is
+      clearly meant to be either 0 or 1.
+    - C `char *` is mapped to `string`. These types are not compatible, but
+      GA68 lowers these to `(uint32_t*, size_t, size_t)`, which allows us to
+      implement a "glue" function to convert strings between the two languages.
+    - C `struct **` arrays are mapped to `[]GccJitHandle`, for the same reasons
+      as with mapping to strings.
+    - C `FILE *` is mapped to `FIXME_FilePtr` - TODO for later.
+    - C `void *` is mapped to `FIXME_VoidPtr` - TODO for later.
+    - C `char **` is mapped to `FIXME_StringPtr` - TODO for later.
+  }
+  mode GccJitHandle = ref struct (int handle);
+  mode FIXME_FilePtr = ref struct (int fileptr);
+  mode FIXME_VoidPtr = ref struct (int bottom);
+  mode FIXME_StringPtr = ref struct (int stringptr);
+
+  proc GccJitHandle c_context_acquire = nest C "gcc_jit_context_acquire";
+  proc (GccJitHandle) void c_context_release = nest C "gcc_jit_context_release";
+
+  proc (GccJitHandle, int, string) void c_context_set_str_option = nest C "gcc_jit_context_set_str_option";
+  proc (GccJitHandle, int, int) void c_context_set_int_option = nest C "gcc_jit_context_set_int_option";
+  proc (GccJitHandle, int, bool) void c_context_set_bool_option = nest C "gcc_jit_context_set_bool_option";
+  proc (GccJitHandle, bool) void c_context_set_bool_allow_unreachable_blocks = nest C "gcc_jit_context_set_bool_allow_unreachable_blocks";
+  proc (GccJitHandle, bool) void c_context_set_bool_print_errors_to_stderr = nest C "gcc_jit_context_set_bool_print_errors_to_stderr";
+  proc (GccJitHandle, bool) void c_context_set_bool_use_external_driver = nest C "gcc_jit_context_set_bool_use_external_driver";
+  proc (GccJitHandle, string) void c_context_add_command_line_option = nest C "gcc_jit_context_add_command_line_option";
+  proc (GccJitHandle, string) void c_context_add_driver_option = nest C "gcc_jit_context_add_driver_option";
+  proc (GccJitHandle) GccJitHandle c_context_compile = nest C "gcc_jit_context_compile";
+  proc (GccJitHandle, int, string) void c_context_compile_to_file = nest C "gcc_jit_context_compile_to_file";
+  proc (GccJitHandle, string, int) void c_context_dump_to_file = nest C "gcc_jit_context_dump_to_file";
+  proc (GccJitHandle, FIXME_FilePtr, int, int) void c_context_set_logfile = nest C "gcc_jit_context_set_logfile";
+  proc (GccJitHandle) string c_context_get_first_error = nest C "gcc_jit_context_get_first_error";
+  proc (GccJitHandle) string c_context_get_last_error = nest C "gcc_jit_context_get_last_error";
+
+  proc (GccJitHandle, string) FIXME_VoidPtr c_result_get_code = nest C "gcc_jit_result_get_code";
+  proc (GccJitHandle, string) FIXME_VoidPtr c_result_get_global = nest C "gcc_jit_result_get_global";
+  proc (GccJitHandle) void c_result_release = nest C "gcc_jit_result_release";
+
+  proc (GccJitHandle) GccJitHandle c_object_get_context = nest C "gcc_jit_object_get_context";
+  proc (GccJitHandle) string c_object_get_debug_string = nest C "gcc_jit_object_get_debug_string";
+
+  proc (GccJitHandle, string, int, int) GccJitHandle c_context_new_location = nest C "gcc_jit_context_new_location";
+  proc (GccJitHandle) GccJitHandle c_location_as_object = nest C "gcc_jit_location_as_object";
+
+  proc (GccJitHandle) GccJitHandle c_type_as_object = nest C "gcc_jit_type_as_object";
+  proc (GccJitHandle, int) GccJitHandle c_context_get_type = nest C "gcc_jit_context_get_type";
+  proc (GccJitHandle, int, bool) GccJitHandle c_context_get_int_type = nest C "gcc_jit_context_get_int_type";
+
+  proc (GccJitHandle) GccJitHandle c_type_get_pointer = nest C "gcc_jit_type_get_pointer";
+  proc (GccJitHandle) GccJitHandle c_type_get_const = nest C "gcc_jit_type_get_const";
+  proc (GccJitHandle) GccJitHandle c_type_get_volatile = nest C "gcc_jit_type_get_volatile";
+  proc (GccJitHandle) GccJitHandle c_type_get_restrict = nest C "gcc_jit_type_get_restrict";
+  proc (GccJitHandle, GccJitHandle) int c_compatible_types = nest C "gcc_jit_compatible_types";
+  proc (GccJitHandle) long long int c_type_get_size = nest C "gcc_jit_type_get_size";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int) GccJitHandle c_context_new_array_type = nest C "gcc_jit_context_new_array_type";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int) GccJitHandle c_context_new_array_type_u64 = nest C "gcc_jit_context_new_array_type_u64";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_field = nest C "gcc_jit_context_new_field";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, string) GccJitHandle c_context_new_bitfield = nest C "gcc_jit_context_new_bitfield";
+  proc (GccJitHandle) GccJitHandle c_field_as_object = nest C "gcc_jit_field_as_object";
+  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_struct_type = nest C "gcc_jit_context_new_struct_type";
+  proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_opaque_struct = nest C "gcc_jit_context_new_opaque_struct";
+  proc (GccJitHandle) GccJitHandle c_struct_as_type = nest C "gcc_jit_struct_as_type";
+  proc (GccJitHandle, GccJitHandle, int, []GccJitHandle) void c_struct_set_fields = nest C "gcc_jit_struct_set_fields";
+  proc (GccJitHandle, long long int) GccJitHandle c_struct_get_field = nest C "gcc_jit_struct_get_field";
+  proc (GccJitHandle) long long int c_struct_get_field_count = nest C "gcc_jit_struct_get_field_count";
+  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "gcc_jit_context_new_union_type";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle, int) GccJitHandle c_context_new_function_ptr_type = nest C "gcc_jit_context_new_function_ptr_type";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_param = nest C "gcc_jit_context_new_param";
+  proc (GccJitHandle) GccJitHandle c_param_as_object = nest C "gcc_jit_param_as_object";
+  proc (GccJitHandle) GccJitHandle c_param_as_lvalue = nest C "gcc_jit_param_as_lvalue";
+  proc (GccJitHandle) GccJitHandle c_param_as_rvalue = nest C "gcc_jit_param_as_rvalue";
+
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string, int, []GccJitHandle, bool) GccJitHandle c_context_new_function = nest C "gcc_jit_context_new_function";
+  proc (GccJitHandle, string) GccJitHandle c_context_get_builtin_function = nest C "gcc_jit_context_get_builtin_function";
+  proc (GccJitHandle) GccJitHandle c_function_as_object = nest C "gcc_jit_function_as_object";
+  proc (GccJitHandle, int) GccJitHandle c_function_get_param = nest C "gcc_jit_function_get_param";
+  proc (GccJitHandle, string) void c_function_dump_to_dot = nest C "gcc_jit_function_dump_to_dot";
+  proc (GccJitHandle, string) GccJitHandle c_function_new_block = nest C "gcc_jit_function_new_block";
+  proc (GccJitHandle) GccJitHandle c_block_as_object = nest C "gcc_jit_block_as_object";
+  proc (GccJitHandle) GccJitHandle c_block_get_function = nest C "gcc_jit_block_get_function";
+
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string) GccJitHandle c_context_new_global = nest C "gcc_jit_context_new_global";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_struct_constructor = nest C "gcc_jit_context_new_struct_constructor";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_union_constructor = nest C "gcc_jit_context_new_union_constructor";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle) GccJitHandle c_context_new_array_constructor = nest C "gcc_jit_context_new_array_constructor";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_global_set_initializer_rvalue = nest C "gcc_jit_global_set_initializer_rvalue";
+  proc (GccJitHandle, string) GccJitHandle c_context_get_target_builtin_function = nest C "gcc_jit_context_get_target_builtin_function";
+  proc (GccJitHandle, FIXME_VoidPtr, long long int) GccJitHandle c_global_set_initializer = nest C "gcc_jit_global_set_initializer";
+  proc (GccJitHandle) void c_global_set_readonly = nest C "gcc_jit_global_set_readonly";
+
+  proc (GccJitHandle) GccJitHandle c_lvalue_as_object = nest C "gcc_jit_lvalue_as_object";
+  proc (GccJitHandle) GccJitHandle c_lvalue_as_rvalue = nest C "gcc_jit_lvalue_as_rvalue";
+  proc (GccJitHandle) GccJitHandle c_rvalue_as_object = nest C "gcc_jit_rvalue_as_object";
+  proc (GccJitHandle) GccJitHandle c_rvalue_get_type = nest C "gcc_jit_rvalue_get_type";
+
+  proc (GccJitHandle, GccJitHandle, int) GccJitHandle c_context_new_rvalue_from_int = nest C "gcc_jit_context_new_rvalue_from_int";
+  proc (GccJitHandle, GccJitHandle, long int) GccJitHandle c_context_new_rvalue_from_long = nest C "gcc_jit_context_new_rvalue_from_long";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_zero = nest C "gcc_jit_context_zero";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_one = nest C "gcc_jit_context_one";
+  proc (GccJitHandle, GccJitHandle, long real) GccJitHandle c_context_new_rvalue_from_double = nest C "gcc_jit_context_new_rvalue_from_double";
+  proc (GccJitHandle, GccJitHandle, FIXME_VoidPtr) GccJitHandle c_context_new_rvalue_from_ptr = nest C "gcc_jit_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_null = nest C "gcc_jit_context_null";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_new_sizeof = nest C "gcc_jit_context_new_sizeof";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_new_alignof = nest C "gcc_jit_context_new_alignof";
+
+  proc (GccJitHandle, string) GccJitHandle c_context_new_string_literal = nest C "gcc_jit_context_new_string_literal";
+
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_unary_op = nest C "gcc_jit_context_new_unary_op";
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_binary_op = nest C "gcc_jit_context_new_binary_op";
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_comparison = nest C "gcc_jit_context_new_comparison";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle) GccJitHandle c_context_new_call = nest C "gcc_jit_context_new_call";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle) GccJitHandle c_context_new_call_through_ptr = nest C "gcc_jit_context_new_call_through_ptr";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_cast = nest C "gcc_jit_context_new_cast";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_bitcast = nest C "gcc_jit_context_new_bitcast";
+
+  proc (GccJitHandle, int) void c_lvalue_set_alignment = nest C "gcc_jit_lvalue_set_alignment";
+  proc (GccJitHandle) int c_lvalue_get_alignment = nest C "gcc_jit_lvalue_get_alignment";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_array_access = nest C "gcc_jit_context_new_array_access";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_convert_vector = nest C "gcc_jit_context_convert_vector";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_rvalue_vector_perm = nest C "gcc_jit_context_new_rvalue_vector_perm";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_vector_access = nest C "gcc_jit_context_new_vector_access";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_lvalue_access_field = nest C "gcc_jit_lvalue_access_field";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_rvalue_access_field = nest C "gcc_jit_rvalue_access_field";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_rvalue_dereference_field = nest C "gcc_jit_rvalue_dereference_field";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_rvalue_dereference = nest C "gcc_jit_rvalue_dereference";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_lvalue_get_address = nest C "gcc_jit_lvalue_get_address";
+
+  proc (GccJitHandle, int) void c_lvalue_set_tls_model = nest C "gcc_jit_lvalue_set_tls_model";
+  proc (GccJitHandle, string) void c_lvalue_set_link_section = nest C "gcc_jit_lvalue_set_link_section";
+  proc (GccJitHandle, string) void c_lvalue_set_register_name = nest C "gcc_jit_lvalue_set_register_name";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_function_new_local = nest C "gcc_jit_function_new_local";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_function_new_temp = nest C "gcc_jit_function_new_temp";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) void c_block_add_eval = nest C "gcc_jit_block_add_eval";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) void c_block_add_assignment = nest C "gcc_jit_block_add_assignment";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, GccJitHandle) void c_block_add_assignment_op = nest C "gcc_jit_block_add_assignment_op";
+  proc (GccJitHandle, GccJitHandle, string) void c_block_add_comment = nest C "gcc_jit_block_add_comment";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) void c_block_end_with_conditional = nest C "gcc_jit_block_end_with_conditional";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) void c_block_end_with_jump = nest C "gcc_jit_block_end_with_jump";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle) void c_block_end_with_return = nest C "gcc_jit_block_end_with_return";
+  proc (GccJitHandle, GccJitHandle) void c_block_end_with_void_return = nest C "gcc_jit_block_end_with_void_return";
+
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_case = nest C "gcc_jit_context_new_case";
+  proc (GccJitHandle) GccJitHandle c_case_as_object = nest C "gcc_jit_case_as_object";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle) void c_block_end_with_switch = nest C "gcc_jit_block_end_with_switch";
+
+  proc (GccJitHandle) GccJitHandle c_context_new_child_context = nest C "gcc_jit_context_new_child_context";
+
+  proc (GccJitHandle, string) void c_context_dump_reproducer_to_file = nest C "gcc_jit_context_dump_reproducer_to_file";
+  proc (GccJitHandle, string, FIXME_StringPtr) void c_context_enable_dump = nest C "gcc_jit_context_enable_dump";
+
+  proc GccJitHandle c_timer_new = nest C "gcc_jit_timer_new";
+  proc (GccJitHandle) void c_timer_release = nest C "gcc_jit_timer_release";
+  proc (GccJitHandle, GccJitHandle) void c_context_set_timer = nest C "gcc_jit_context_set_timer";
+  proc (GccJitHandle) GccJitHandle c_context_get_timer = nest C "gcc_jit_context_get_timer";
+  proc (GccJitHandle, string) void c_timer_push = nest C "gcc_jit_timer_push";
+  proc (GccJitHandle, string) void c_timer_pop = nest C "gcc_jit_timer_pop";
+  proc (GccJitHandle, FIXME_FilePtr) void c_timer_print = nest C "gcc_jit_timer_print";
+
+  proc (GccJitHandle, bool) void c_rvalue_set_bool_require_tail_call = nest C "gcc_jit_rvalue_set_bool_require_tail_call";
+  proc (GccJitHandle, long long int) GccJitHandle c_type_get_aligned = nest C "gcc_jit_type_get_aligned";
+  proc (GccJitHandle, long long int) GccJitHandle c_type_get_vector = nest C "gcc_jit_type_get_vector";
+  proc (GccJitHandle, GccJitHandle) GccJitHandle c_function_get_address = nest C "gcc_jit_function_get_address";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle) GccJitHandle c_context_new_rvalue_from_vector = nest C "gcc_jit_context_new_rvalue_from_vector";
+
+  proc int c_version_major = nest C "gcc_jit_version_major";
+  proc int c_version_minor = nest C "gcc_jit_version_minor";
+  proc int c_version_patchlevel = nest C "gcc_jit_version_patchlevel";
+
+  proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_block_add_extended_asm = nest C "gcc_jit_block_add_extended_asm";
+  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle, GccJitHandle) GccJitHandle c_block_end_with_extended_asm_goto = nest C "gcc_jit_block_end_with_extended_asm_goto";
+  proc (GccJitHandle) GccJitHandle c_extended_asm_as_object = nest C "gcc_jit_extended_asm_as_object";
+  proc (GccJitHandle, bool) void c_extended_asm_set_volatile_flag = nest C "gcc_jit_extended_asm_set_volatile_flag";
+  proc (GccJitHandle, bool) void c_extended_asm_set_inline_flag = nest C "gcc_jit_extended_asm_set_inline_flag";
+  proc (GccJitHandle, string, string, GccJitHandle) void c_extended_asm_add_output_operand = nest C "gcc_jit_extended_asm_add_output_operand";
+  proc (GccJitHandle, string, string, GccJitHandle) void c_extended_asm_add_input_operand = nest C "gcc_jit_extended_asm_add_input_operand";
+  proc (GccJitHandle, string) void c_extended_asm_add_clobber = nest C "gcc_jit_extended_asm_add_clobber";
+  proc (GccJitHandle, GccJitHandle, string) void c_context_add_top_level_asm = nest C "gcc_jit_context_add_top_level_asm";
+
+  proc (GccJitHandle) GccJitHandle c_function_get_return_type = nest C "gcc_jit_function_get_return_type";
+  proc (GccJitHandle) long long int c_function_get_param_count = nest C "gcc_jit_function_get_param_count";
+  proc (GccJitHandle) GccJitHandle c_type_dyncast_array = nest C "gcc_jit_type_dyncast_array";
+  proc (GccJitHandle) int c_type_is_bool = nest C "gcc_jit_type_is_bool";
+  proc (GccJitHandle) GccJitHandle c_type_dyncast_function_ptr_type = nest C "gcc_jit_type_dyncast_function_ptr_type";
+  proc (GccJitHandle) GccJitHandle c_function_type_get_return_type = nest C "gcc_jit_function_type_get_return_type";
+  proc (GccJitHandle) long long int c_function_type_get_param_count = nest C "gcc_jit_function_type_get_param_count";
+  proc (GccJitHandle, long long int) GccJitHandle c_function_type_get_param_type = nest C "gcc_jit_function_type_get_param_type";
+  proc (GccJitHandle) int c_type_is_integral = nest C "gcc_jit_type_is_integral";
+  proc (GccJitHandle) int c_type_is_floating_point = nest C "gcc_jit_type_is_floating_point";
+  proc (GccJitHandle) GccJitHandle c_type_is_pointer = nest C "gcc_jit_type_is_pointer";
+  proc (GccJitHandle) GccJitHandle c_type_dyncast_vector = nest C "gcc_jit_type_dyncast_vector";
+  proc (GccJitHandle) GccJitHandle c_type_is_struct = nest C "gcc_jit_type_is_struct";
+  proc (GccJitHandle) long long int c_vector_type_get_num_units = nest C "gcc_jit_vector_type_get_num_units";
+  proc (GccJitHandle) GccJitHandle c_vector_type_get_element_type = nest C "gcc_jit_vector_type_get_element_type";
+  proc (GccJitHandle) GccJitHandle c_type_unqualified = nest C "gcc_jit_type_unqualified";
+
+  proc (GccJitHandle, int) void c_function_add_attribute = nest C "gcc_jit_function_add_attribute";
+  proc (GccJitHandle, int, string) void c_function_add_string_attribute = nest C "gcc_jit_function_add_string_attribute";
+
+  proc (GccJitHandle) GccJitHandle c_context_get_target_info = nest C "gcc_jit_context_get_target_info";
+  proc (GccJitHandle) void c_target_info_release = nest C "gcc_jit_target_info_release";
+  proc (GccJitHandle, string) bool c_target_info_cpu_supports = nest C "gcc_jit_target_info_cpu_supports";
+  proc (GccJitHandle) string c_target_info_arch = nest C "gcc_jit_target_info_arch";
+  proc (GccJitHandle, int) bool c_target_info_supports_target_dependent_type = nest C "gcc_jit_target_info_supports_target_dependent_type";
+
+  proc (GccJitHandle, int, ref int, long long int) void c_function_add_integer_array_attribute = nest C "gcc_jit_function_add_integer_array_attribute";
+
+  proc (GccJitHandle, int, string) void c_lvalue_add_string_attribute = nest C "gcc_jit_lvalue_add_string_attribute";
+
+  proc (GccJitHandle, string) void c_context_set_output_ident = nest C "gcc_jit_context_set_output_ident";
+
+  proc (GccJitHandle) void c_context_set_abort_on_unsupported_target_builtin = nest C "gcc_jit_context_set_abort_on_unsupported_target_builtin";
+
+  skip
+fed
