@@ -682,18 +682,22 @@ def
      res);
 
   { Upcasting to lvalue. }
-  pub proc as_lvalue = (JIT_Param param) JIT_Lvalue:
+  pub proc as_lvalue = (JIT_Lvalue_Variant variant) JIT_Lvalue:
     (JIT_Lvalue res;
-     jit_lvalue of res := c_param_as_lvalue(jit_param of param);
+     jit_lvalue of res := (case variant in
+                           (JIT_Param param): c_param_as_lvalue(jit_param of param),
+                           (JIT_Lvalue lvalue): jit_lvalue of lvalue
+                           esac);
      res);
 
   { Upcasting to rvalue. }
-  pub proc as_rvalue = (JIT_Lvalue_Variant variant) JIT_Rvalue:
+  pub proc as_rvalue = (JIT_Rvalue_Variant variant) JIT_Rvalue:
     (JIT_Rvalue res;
-     jit_rvalue of res := case variant in
-       (JIT_Param param):   c_param_as_rvalue(jit_param of param),
-       (JIT_Lvalue lvalue): c_lvalue_as_rvalue(jit_lvalue of lvalue)
-     esac;
+     jit_rvalue of res := (case variant in
+                           (JIT_Param param):   c_param_as_rvalue(jit_param of param),
+                           (JIT_Lvalue lvalue): c_lvalue_as_rvalue(jit_lvalue of lvalue),
+                           (JIT_Rvalue rvalue): jit_rvalue of rvalue
+                           esac);
      res);
 
   { Create a function. }
@@ -814,11 +818,7 @@ def
   { Get the type of an rvalue. }
   pub proc rvalue_get_type = (JIT_Rvalue_Variant expr) JIT_Type:
     (JIT_Type res;
-     jit_type of res := c_rvalue_get_type(jit_rvalue of (case expr in
-                                                         (JIT_Param param): as_rvalue(param),
-                                                         (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                         (JIT_Rvalue rvalue): rvalue
-                                                         esac));
+     jit_type of res := c_rvalue_get_type(jit_rvalue of as_rvalue(expr));
      res);
 
   { Integer constants. }
@@ -896,11 +896,7 @@ def
                                                  jit_location of location,
                                                  unary_op of unary_op,
                                                  jit_type of result_type,
-                                                 jit_rvalue of (case expr in
-                                                                (JIT_Param param): as_rvalue(param),
-                                                                (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                (JIT_Rvalue rvalue): rvalue
-                                                                esac));
+                                                 jit_rvalue of as_rvalue(expr));
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
@@ -913,16 +909,8 @@ def
                                                   jit_location of location,
                                                   binary_op of binary_op,
                                                   jit_type of result_type,
-                                                  jit_rvalue of (case a in
-                                                                 (JIT_Param param): as_rvalue(param),
-                                                                 (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                 (JIT_Rvalue rvalue): rvalue
-                                                                 esac),
-                                                  jit_rvalue of (case b in
-                                                                 (JIT_Param param): as_rvalue(param),
-                                                                 (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                 (JIT_Rvalue rvalue): rvalue
-                                                                 esac));
+                                                  jit_rvalue of as_rvalue(a),
+                                                  jit_rvalue of as_rvalue(b));
      res);
 
   { Create an rvalue for a comparison. }
@@ -933,16 +921,8 @@ def
      jit_rvalue of res := c_context_new_comparison(jit_context of ctxt,
                                                    jit_location of location,
                                                    comparison of comparison_op,
-                                                   jit_rvalue of (case a in
-                                                                  (JIT_Param param): as_rvalue(param),
-                                                                  (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                  (JIT_Rvalue rvalue): rvalue
-                                                                  esac),
-                                                   jit_rvalue of (case b in
-                                                                  (JIT_Param param): as_rvalue(param),
-                                                                  (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                  (JIT_Rvalue rvalue): rvalue
-                                                                  esac));
+                                                   jit_rvalue of as_rvalue(a),
+                                                   jit_rvalue of as_rvalue(b));
      res);
 
   { Call of a specific function. }
@@ -972,11 +952,7 @@ def
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_cast(jit_context of ctxt,
                                              jit_location of location,
-                                             jit_rvalue of (case expr in
-                                                            (JIT_Param param): as_rvalue(param),
-                                                            (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                            (JIT_Rvalue rvalue): rvalue
-                                                            esac),
+                                             jit_rvalue of as_rvalue(expr),
                                              jit_type of type);
      res);
 
@@ -987,28 +963,18 @@ def
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_bitcast(jit_context of ctxt,
                                                 jit_location of location,
-                                                jit_rvalue of (case expr in
-                                                               (JIT_Param param): as_rvalue(param),
-                                                               (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                               (JIT_Rvalue rvalue): rvalue
-                                                               esac),
+                                                jit_rvalue of as_rvalue(expr),
                                                 jit_type of type);
      res);
 
   { Set the alignment of a variable. }
   pub proc lvalue_set_alignment = (JIT_Lvalue_Variant decl, int alignment) void:
-    c_lvalue_set_alignment(jit_lvalue of (case decl in
-                                          (JIT_Param param): as_lvalue(param),
-                                          (JIT_Lvalue lvalue): lvalue
-                                          esac),
+    c_lvalue_set_alignment(jit_lvalue of as_lvalue(decl),
                            alignment);
 
   { Get the alignment of a variable. }
   pub proc lvalue_get_alignment = (JIT_Lvalue_Variant decl) int:
-    c_lvalue_get_alignment(jit_lvalue of (case decl in
-                                          (JIT_Param param): as_lvalue(param),
-                                          (JIT_Lvalue lvalue): lvalue
-                                          esac));
+    c_lvalue_get_alignment(jit_lvalue of as_lvalue(decl));
 
   { Create an lvalue for array access. }
   pub proc jit_new_array_access = (JIT_Context ctxt, JIT_Location location,
@@ -1016,16 +982,8 @@ def
     (JIT_Lvalue res;
      jit_lvalue of res := c_context_new_array_access(jit_context of ctxt,
                                                      jit_location of location,
-                                                     jit_rvalue of (case ptr in
-                                                                    (JIT_Param param): as_rvalue(param),
-                                                                    (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                    (JIT_Rvalue rvalue): rvalue
-                                                                    esac),
-                                                     jit_rvalue of (case index in
-                                                                    (JIT_Param param): as_rvalue(param),
-                                                                    (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                    (JIT_Rvalue rvalue): rvalue
-                                                                    esac));
+                                                     jit_rvalue of as_rvalue(ptr),
+                                                     jit_rvalue of as_rvalue(index));
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
@@ -1035,11 +993,7 @@ def
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_convert_vector(jit_context of ctxt,
                                                    jit_location of location,
-                                                   jit_rvalue of (case vector in
-                                                                  (JIT_Param param): as_rvalue(param),
-                                                                  (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                  (JIT_Rvalue rvalue): rvalue
-                                                                  esac),
+                                                   jit_rvalue of as_rvalue(vector),
                                                    jit_type of type);
      res);
 
@@ -1050,21 +1004,9 @@ def
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_rvalue_vector_perm(jit_context of ctxt,
                                                            jit_location of location,
-                                                           jit_rvalue of (case a in
-                                                                          (JIT_Param param): as_rvalue(param),
-                                                                          (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                          (JIT_Rvalue rvalue): rvalue
-                                                                          esac),
-                                                           jit_rvalue of (case b in
-                                                                          (JIT_Param param): as_rvalue(param),
-                                                                          (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                          (JIT_Rvalue rvalue): rvalue
-                                                                          esac),
-                                                           jit_rvalue of (case mask in
-                                                                          (JIT_Param param): as_rvalue(param),
-                                                                          (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                          (JIT_Rvalue rvalue): rvalue
-                                                                          esac));
+                                                           jit_rvalue of as_rvalue(a),
+                                                           jit_rvalue of as_rvalue(b),
+                                                           jit_rvalue of as_rvalue(mask));
      res);
 
   { Get the element at "index" in "vector". }
@@ -1073,26 +1015,15 @@ def
     (JIT_Lvalue res;
      jit_lvalue of res := c_context_new_vector_access(jit_context of ctxt,
                                                       jit_location of location,
-                                                      jit_rvalue of (case vector in
-                                                                     (JIT_Param param): as_rvalue(param),
-                                                                     (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                     (JIT_Rvalue rvalue): rvalue
-                                                                     esac),
-                                                      jit_rvalue of (case index in
-                                                                     (JIT_Param param): as_rvalue(param),
-                                                                     (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                     (JIT_Rvalue rvalue): rvalue
-                                                                     esac));
+                                                      jit_rvalue of as_rvalue(vector),
+                                                      jit_rvalue of as_rvalue(index));
      res);
 
   { Accessing a field of an lvalue of struct type, analogous to: (EXPR).field = ...;. }
   pub proc lvalue_access_field = (JIT_Lvalue_Variant expr, JIT_Location location,
                                   JIT_Field field) JIT_Lvalue:
     (JIT_Lvalue res;
-     jit_lvalue of res := c_lvalue_access_field(jit_lvalue of (case expr in
-                                                               (JIT_Param param): as_lvalue(param),
-                                                               (JIT_Lvalue lvalue): lvalue
-                                                               esac),
+     jit_lvalue of res := c_lvalue_access_field(jit_lvalue of as_lvalue(expr),
                                                 jit_location of location,
                                                 jit_field of field);
      res);
@@ -1101,11 +1032,7 @@ def
   pub proc rvalue_access_field = (JIT_Rvalue_Variant expr, JIT_Location location,
                                   JIT_Field field) JIT_Rvalue:
     (JIT_Rvalue res;
-     jit_rvalue of res := c_rvalue_access_field(jit_rvalue of (case expr in
-                                                               (JIT_Param param): as_rvalue(param),
-                                                               (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                               (JIT_Rvalue rvalue): rvalue
-                                                               esac),
+     jit_rvalue of res := c_rvalue_access_field(jit_rvalue of as_rvalue(expr),
                                                 jit_location of location,
                                                 jit_field of field);
      res);
@@ -1114,11 +1041,7 @@ def
   pub proc rvalue_dereference_field = (JIT_Rvalue_Variant expr, JIT_Location location,
                                        JIT_Field field) JIT_Lvalue:
     (JIT_Lvalue res;
-     jit_lvalue of res := c_rvalue_dereference_field(jit_rvalue of (case expr in
-                                                                    (JIT_Param param): as_rvalue(param),
-                                                                    (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                                    (JIT_Rvalue rvalue): rvalue
-                                                                    esac),
+     jit_lvalue of res := c_rvalue_dereference_field(jit_rvalue of as_rvalue(expr),
                                                      jit_location of location,
                                                      jit_field of field);
      res);
@@ -1126,21 +1049,14 @@ def
   { Dereferencing a pointer; analogous to: (EXPR). }
   pub proc rvalue_dereference = (JIT_Rvalue_Variant expr, JIT_Location location) JIT_Lvalue:
     (JIT_Lvalue res;
-     jit_lvalue of res := c_rvalue_dereference(jit_rvalue of (case expr in
-                                                              (JIT_Param param): as_rvalue(param),
-                                                              (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                              (JIT_Rvalue rvalue): rvalue
-                                                              esac),
+     jit_lvalue of res := c_rvalue_dereference(jit_rvalue of as_rvalue(expr),
                                                jit_location of location);
      res);
 
   { Taking the address of an lvalue; analogous to: &(EXPR). }
   pub proc lvalue_get_address = (JIT_Lvalue_Variant expr, JIT_Location location) JIT_Rvalue:
     (JIT_Rvalue res;
-     jit_rvalue of res := c_lvalue_get_address(jit_lvalue of (case expr in
-                                                              (JIT_Param param): as_lvalue(param),
-                                                              (JIT_Lvalue lvalue): lvalue
-                                                              esac),
+     jit_rvalue of res := c_lvalue_get_address(jit_lvalue of as_lvalue(expr),
                                                jit_location of location);
      res);
 
@@ -1181,26 +1097,15 @@ def
                              JIT_Rvalue_Variant expr) void:
     c_block_add_eval(jit_block of block,
                      jit_location of location,
-                     jit_rvalue of (case expr in
-                                    (JIT_Param param): as_rvalue(param),
-                                    (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                    (JIT_Rvalue rvalue): rvalue
-                                    esac));
+                     jit_rvalue of as_rvalue(expr));
 
   { Add evaluation of an rvalue, assigning the result to the given lvalue. }
   pub proc block_add_assignment = (JIT_Block block, JIT_Location location,
                                    JIT_Lvalue_Variant lhs, JIT_Rvalue_Variant rhs) void:
     c_block_add_assignment(jit_block of block,
                            jit_location of location,
-                           jit_lvalue of (case lhs in
-                                          (JIT_Param param): as_lvalue(param),
-                                          (JIT_Lvalue lvalue): lvalue
-                                          esac),
-                           jit_rvalue of (case rhs in
-                                          (JIT_Param param): as_rvalue(param),
-                                          (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                          (JIT_Rvalue rvalue): rvalue
-                                          esac));
+                           jit_lvalue of as_lvalue(lhs),
+                           jit_rvalue of as_rvalue(rhs));
 
   { Add evaluation of an rvalue, using the result to modify an lvalue. }
   pub proc block_add_assignment_op = (JIT_Block block, JIT_Location location,
@@ -1208,16 +1113,9 @@ def
                                       JIT_Rvalue_Variant rhs) void:
     c_block_add_assignment_op(jit_block of block,
                               jit_location of location,
-                              jit_lvalue of (case lhs in
-                                             (JIT_Param param): as_lvalue(param),
-                                             (JIT_Lvalue lvalue): lvalue
-                                             esac),
+                              jit_lvalue of as_lvalue(lhs),
                               binary_op of binary_op,
-                              jit_rvalue of (case rhs in
-                                             (JIT_Param param): as_rvalue(param),
-                                             (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                             (JIT_Rvalue rvalue): rvalue
-                                             esac));
+                              jit_rvalue of as_rvalue(rhs));
 
   { Add a no-op textual comment to the internal representation of the code. }
   pub proc block_add_comment = (JIT_Block block, JIT_Location location, string text) void:
@@ -1232,11 +1130,7 @@ def
                                          JIT_Block on_false) void:
     c_block_end_with_conditional(jit_block of block,
                                  jit_location of location,
-                                 jit_rvalue of (case boolval in
-                                                (JIT_Param param): as_rvalue(param),
-                                                (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                (JIT_Rvalue rvalue): rvalue
-                                                esac),
+                                 jit_rvalue of as_rvalue(boolval),
                                  jit_block of on_true,
                                  jit_block of on_false);
 
@@ -1251,11 +1145,7 @@ def
                                     JIT_Rvalue_Variant expr) void:
     c_block_end_with_return(jit_block of block,
                             jit_location of location,
-                            jit_rvalue of (case expr in
-                                           (JIT_Param param): as_rvalue(param),
-                                           (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                           (JIT_Rvalue rvalue): rvalue
-                                           esac));
+                            jit_rvalue of as_rvalue(expr));
 
   { Terminate a block by adding a valueless return, for functions with `void` return type. }
   pub proc block_end_with_void_return = (JIT_Block block, JIT_Location location) void:
@@ -1278,11 +1168,7 @@ def
                                     []JIT_Case cases) void:
     c_block_end_with_switch(jit_block of block,
                             jit_location of location,
-                            jit_rvalue of (case expr in
-                                           (JIT_Param param): as_rvalue(param),
-                                           (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                           (JIT_Rvalue rvalue): rvalue
-                                           esac),
+                            jit_rvalue of as_rvalue(expr),
                             jit_block of default_block,
                             jit_case of cases);
 
@@ -1419,21 +1305,14 @@ def
                                               string constraint, JIT_Lvalue_Variant output) void:
     c_extended_asm_add_output_operand(jit_extended_asm of extended_asm,
                                       symbolic_name, constraint,
-                                      jit_lvalue of (case output in
-                                                     (JIT_Param param): as_lvalue(param),
-                                                     (JIT_Lvalue lvalue): lvalue
-                                                     esac));
+                                      jit_lvalue of as_lvalue(output));
 
   { Add an input operand to the extended asm statement. }
   pub proc extended_asm_add_input_operand = (JIT_Extended_Asm extended_asm, string symbolic_name,
                                              string constraint, JIT_Rvalue_Variant input) void:
     c_extended_asm_add_input_operand(jit_extended_asm of extended_asm,
                                      symbolic_name, constraint,
-                                     jit_rvalue of (case input in
-                                                    (JIT_Param param): as_rvalue(param),
-                                                    (JIT_Lvalue lvalue): as_rvalue(lvalue),
-                                                    (JIT_Rvalue rvalue): rvalue
-                                                    esac));
+                                     jit_rvalue of as_rvalue(input));
 
   { Add "clobber" to the list of registers clobbered by the extended asm statement. }
   pub proc extended_asm_add_clobber = (JIT_Extended_Asm extended_asm, string clobber) void:
@@ -1580,10 +1459,7 @@ def
   { Add a string attribute to a variable. }
   pub proc lvalue_add_string_attribute = (JIT_Lvalue_Variant decl, Var_Attribute attribute,
                                           string value) void:
-    c_lvalue_add_string_attribute(jit_lvalue of (case decl in
-                                                 (JIT_Param param): as_lvalue(param),
-                                                 (JIT_Lvalue lvalue): lvalue
-                                                 esac),
+    c_lvalue_add_string_attribute(jit_lvalue of as_lvalue(decl),
                                   var_attribute of attribute,
                                   value);
 
