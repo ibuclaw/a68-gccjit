@@ -345,14 +345,12 @@ def
   pub proc jit_release = (JIT_Context ctxt) void:
     c_context_release(jit_context of ctxt);
 
-  { FIXME: string -> char* }
   { Set the name of the program, for use as a prefix when printing error messages to stderr. }
   pub proc set_program_name = (JIT_Context ctxt, string value) void:
     c_context_set_str_option(jit_context of ctxt,
                              str_option of option_progname,
                              value);
 
-  { FIXME: string -> char* }
   { Set which special characters are allowed in function names. }
   pub proc set_special_chars_in_func_names = (JIT_Context ctxt, string value) void:
     c_context_set_str_option(jit_context of ctxt,
@@ -426,12 +424,10 @@ def
   pub proc set_use_external_driver = (JIT_Context ctxt, bool value) void:
     c_context_set_bool_use_external_driver(jit_context of ctxt, value);
 
-  { FIXME: string -> char* }
   { Add an arbitrary GCC command-line option to the context. }
   pub proc jit_add_command_line_option = (JIT_Context ctxt, string s) void:
     c_context_add_command_line_option(jit_context of ctxt, s);
 
-  { FIXME: string -> char* }
   { Add an arbitrary GCC driver option to the context. }
   pub proc jit_add_driver_option = (JIT_Context ctxt, string s) void:
     c_context_add_driver_option(jit_context of ctxt, s);
@@ -442,14 +438,12 @@ def
      jit_result of res := c_context_compile(jit_context of ctxt);
      res);
 
-  { FIXME: string -> char* }
   { Compile the context to a file of the given kind. }
   pub proc jit_compile_to_file = (JIT_Context ctxt, Output_Kind kind , string filename) void:
     c_context_compile_to_file(jit_context of ctxt,
                               output_kind of kind,
                               filename);
 
-  { FIXME: string -> char* }
   { Dump a C-like representation of the context to the given path. }
   pub proc jit_dump_to_file = (JIT_Context ctxt, string path, int update_locations) void:
     c_context_dump_to_file(jit_context of ctxt,
@@ -495,7 +489,6 @@ def
   pub proc jit_get_debug_string = (JIT_Object_Variant variant) string:
     c_object_get_debug_string(jit_object of as_object(variant));
 
-  { FIXME: string -> char* }
   { Create a source code location for use by the debugger. }
   pub proc jit_new_location = (JIT_Context ctxt, string filename,
                                int line, int column) JIT_Location:
@@ -591,7 +584,6 @@ def
                                                      num_elements);
      res);
 
-  { FIXME: string -> char* }
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a field, for use within a struct or union. }
   pub proc jit_new_field = (JIT_Context ctxt, JIT_Location location,
@@ -603,7 +595,6 @@ def
                                              name);
      res);
 
-  { FIXME: string -> char* }
   { Create a bit field for use within a struct or union. }
   pub proc jit_new_bitfield = (JIT_Context ctxt, JIT_Location location,
                                JIT_Type type, int width, string name) JIT_Field:
@@ -614,7 +605,6 @@ def
                                                 width, name);
      res);
 
-  { FIXME: string -> char* }
   { FIXME: num_fields redundant? }
   { Create a struct type from an array of fields. }
   pub proc jit_new_struct_type = (JIT_Context ctxt, JIT_Location location,
@@ -626,7 +616,6 @@ def
                                                     jit_field of fields);
      res);
 
-  { FIXME: string -> char* }
   { Create an opaque struct type. }
   pub proc jit_new_opaque_struct = (JIT_Context ctxt, JIT_Location location,
                                     string name) JIT_Struct:
@@ -661,7 +650,6 @@ def
   pub proc struct_get_field_count = (JIT_Struct struct_type) long long int:
     c_struct_get_field_count(jit_struct of struct_type);
 
-  { FIXME: string -> char* }
   { FIXME: num_fields redundant? }
   { Unions work similarly to structs. }
   pub proc jit_new_union_type = (JIT_Context ctxt, JIT_Location location,
@@ -688,7 +676,6 @@ def
                                                         is_variadic);
      res);
 
-  { FIXME: string -> char* }
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a function param. }
   pub proc jit_new_param = (JIT_Context ctxt, JIT_Location location,
@@ -715,7 +702,6 @@ def
      esac;
      res);
 
-  { FIXME: string -> char* }
   { FIXME: num_params redundant? }
   { Create a function. }
   pub proc jit_new_function = (JIT_Context ctxt, JIT_Location location, Function_Kind kind,
@@ -731,7 +717,6 @@ def
                                                    is_variadic);
      res);
 
-  { FIXME: string -> char* }
   { Create a reference to a builtin function. }
   pub proc jit_get_builtin_function = (JIT_Context ctxt, string name) JIT_Function:
     (JIT_Function res;
@@ -744,12 +729,10 @@ def
      jit_param of res := c_function_get_param(jit_function of function, index);
      res);
 
-  { FIXME: string -> char* }
   { Emit the function in graphviz format. }
   pub proc function_dump_to_dot = (JIT_Function function, string filename) void:
     c_function_dump_to_dot(jit_function of function, filename);
 
-  { FIXME: string -> char* }
   { Create a block within a function. }
   pub proc function_new_block = (JIT_Function function, string name) JIT_Block:
     (JIT_Block res;
@@ -762,7 +745,6 @@ def
      jit_function of res := c_block_get_function(jit_block of block);
      res);
 
-  { FIXME: string -> char* }
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a global variable. }
   pub proc jit_new_global = (JIT_Context ctxt, JIT_Location location,
@@ -824,7 +806,6 @@ def
                                                           jit_rvalue of rvalue);
      res);
 
-  { FIXME: string -> char* }
   { Create a reference to a machine-specific builtin function. }
   pub proc jit_get_target_builtin_function = (JIT_Context ctxt, string name) JIT_Function:
     (JIT_Function res;
@@ -912,7 +893,6 @@ def
      jit_rvalue of res := c_context_new_alignof(jit_context of ctxt, jit_type of type);
      res);
 
-  { FIXME: string -> char* }
   { String literals. }
   pub proc jit_new_string_literal = (JIT_Context ctxt, string value) JIT_Rvalue:
     (JIT_Rvalue res;
@@ -1186,17 +1166,14 @@ def
     c_lvalue_set_tls_model(jit_lvalue of lvalue,
                            tls_model of model);
 
-  { FIXME: string -> char* }
   { Set the link section of a global variable; analogous to: __attribute__((section(".name"))). }
   pub proc lvalue_set_link_section = (JIT_Lvalue lvalue, string section) void:
     c_lvalue_set_link_section(jit_lvalue of lvalue, section);
 
-  { FIXME: string -> char* }
   { Make this variable a register variable and set its register name. }
   pub proc lvalue_set_register_name = (JIT_Lvalue lvalue, string name) void:
     c_lvalue_set_register_name(jit_lvalue of lvalue, name);
 
-  { FIXME: string -> char* }
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a local variable within a function. }
   pub proc function_new_local = (JIT_Function function, JIT_Location location,
@@ -1259,7 +1236,6 @@ def
                                              (JIT_Rvalue rvalue): rvalue
                                              esac));
 
-  { FIXME: string -> char* }
   { Add a no-op textual comment to the internal representation of the code. }
   pub proc block_add_comment = (JIT_Block block, JIT_Location location, string text) void:
     c_block_add_comment(jit_block of block,
@@ -1335,12 +1311,10 @@ def
      jit_context of res := c_context_new_child_context(jit_context of ctxt);
      res);
 
-  { FIXME: string -> char* }
   { Write C source code into "path" that can be compiled into a self-contained executable (i.e. }
   pub proc jit_dump_reproducer_to_file = (JIT_Context ctxt, string path) void:
     c_context_dump_reproducer_to_file(jit_context of ctxt, path);
 
-  { FIXME: string -> char* }
   { FIXME: ??? -> out char** }
   { Enable the dumping of a specific set of internal state from the compilation,
     capturing the result in-memory as a buffer. }
@@ -1368,12 +1342,10 @@ def
      jit_timer of res := c_context_get_timer(jit_context of ctxt);
      res);
 
-  { FIXME: string -> char* }
   { Push the given item onto the timing stack. }
   pub proc timer_push = (JIT_Timer timer, string name) void:
     c_timer_push(jit_timer of timer, name);
 
-  { FIXME: string -> char* }
   { Pop the top item from the timing stack. }
   pub proc timer_pop = (JIT_Timer timer, string name) void:
     c_timer_pop(jit_timer of timer, name);
@@ -1433,7 +1405,6 @@ def
   pub proc jit_version_patchlevel = int:
      c_version_patchlevel;
 
-  { FIXME: string -> char* }
   { Create a gcc_jit_extended_asm for an extended asm statement with no control flow. }
   pub proc block_add_extended_asm = (JIT_Block block, JIT_Location location,
                                      string asm_template) JIT_Extended_Asm:
@@ -1469,7 +1440,6 @@ def
   pub proc extended_asm_set_inline_flag = (JIT_Extended_Asm extended_asm, bool value) void:
     c_extended_asm_set_inline_flag(jit_extended_asm of extended_asm, value);
 
-  { FIXME: string -> char* }
   { Add an output operand to the extended asm statement. }
   pub proc extended_asm_add_output_operand = (JIT_Extended_Asm extended_asm, string symbolic_name,
                                               string constraint, JIT_Lvalue_Variant output) void:
@@ -1480,7 +1450,6 @@ def
                                                      (JIT_Lvalue lvalue): lvalue
                                                      esac));
 
-  { FIXME: string -> char* }
   { Add an input operand to the extended asm statement. }
   pub proc extended_asm_add_input_operand = (JIT_Extended_Asm extended_asm, string symbolic_name,
                                              string constraint, JIT_Rvalue_Variant input) void:
@@ -1492,12 +1461,10 @@ def
                                                     (JIT_Rvalue rvalue): rvalue
                                                     esac));
 
-  { FIXME: string -> char* }
   { Add "clobber" to the list of registers clobbered by the extended asm statement. }
   pub proc extended_asm_add_clobber = (JIT_Extended_Asm extended_asm, string clobber) void:
     c_extended_asm_add_clobber(jit_extended_asm of extended_asm, clobber);
 
-  { FIXME: string -> char* }
   { Add "asm_stmts", a set of top-level asm statements,
     analogous to those created by GCC's basic asm syntax in C at file scope. }
   pub proc jit_add_top_level_asm = (JIT_Context ctxt, JIT_Location location, string asm_stmts) void:
@@ -1595,7 +1562,6 @@ def
     c_function_add_attribute(jit_function of function,
                              fn_attribute of attribute);
 
-  { FIXME: string -> char* }
   { Add a string attribute to a function. }
   pub proc function_add_string_attribute = (JIT_Function function,
                                             Fn_Attribute attribute,
@@ -1614,7 +1580,6 @@ def
   pub proc target_info_release = (JIT_Targetinfo target_info) void:
     c_target_info_release(jit_targetinfo of target_info);
 
-  { FIXME: string -> char* }
   { Returns non-zero if FEATURE is supported by the specified target. }
   pub proc target_info_cpu_supports = (JIT_Targetinfo target_info, string feature) bool:
     c_target_info_cpu_supports(jit_targetinfo of target_info, feature);
@@ -1638,7 +1603,6 @@ def
                                            fn_attribute of attribute,
                                            values, length);
 
-  { FIXME: string -> char* }
   { Add a string attribute to a variable. }
   pub proc lvalue_add_string_attribute = (JIT_Lvalue_Variant decl, Var_Attribute attribute,
                                           string value) void:
@@ -1649,7 +1613,6 @@ def
                                   var_attribute of attribute,
                                   value);
 
-  { FIXME: string -> char* }
   { Set the output identifier for the context. }
   pub proc jit_set_output_ident = (JIT_Context ctxt, string ident) void:
     c_context_set_output_ident(jit_context of ctxt, ident);
@@ -1689,29 +1652,29 @@ def
   proc GccJitHandle c_context_acquire = nest C "gcc_jit_context_acquire";
   proc (GccJitHandle) void c_context_release = nest C "gcc_jit_context_release";
 
-  proc (GccJitHandle, int, string) void c_context_set_str_option = nest C "gcc_jit_context_set_str_option";
+  proc (GccJitHandle, int, string) void c_context_set_str_option = nest C "jit68_context_set_str_option";
   proc (GccJitHandle, int, int) void c_context_set_int_option = nest C "gcc_jit_context_set_int_option";
   proc (GccJitHandle, int, bool) void c_context_set_bool_option = nest C "gcc_jit_context_set_bool_option";
   proc (GccJitHandle, bool) void c_context_set_bool_allow_unreachable_blocks = nest C "gcc_jit_context_set_bool_allow_unreachable_blocks";
   proc (GccJitHandle, bool) void c_context_set_bool_print_errors_to_stderr = nest C "gcc_jit_context_set_bool_print_errors_to_stderr";
   proc (GccJitHandle, bool) void c_context_set_bool_use_external_driver = nest C "gcc_jit_context_set_bool_use_external_driver";
-  proc (GccJitHandle, string) void c_context_add_command_line_option = nest C "gcc_jit_context_add_command_line_option";
-  proc (GccJitHandle, string) void c_context_add_driver_option = nest C "gcc_jit_context_add_driver_option";
+  proc (GccJitHandle, string) void c_context_add_command_line_option = nest C "jit68_context_add_command_line_option";
+  proc (GccJitHandle, string) void c_context_add_driver_option = nest C "jit68_context_add_driver_option";
   proc (GccJitHandle) GccJitHandle c_context_compile = nest C "gcc_jit_context_compile";
-  proc (GccJitHandle, int, string) void c_context_compile_to_file = nest C "gcc_jit_context_compile_to_file";
-  proc (GccJitHandle, string, int) void c_context_dump_to_file = nest C "gcc_jit_context_dump_to_file";
+  proc (GccJitHandle, int, string) void c_context_compile_to_file = nest C "jit68_context_compile_to_file";
+  proc (GccJitHandle, string, int) void c_context_dump_to_file = nest C "jit68_context_dump_to_file";
   proc (GccJitHandle, FIXME_FilePtr, int, int) void c_context_set_logfile = nest C "gcc_jit_context_set_logfile";
   proc (GccJitHandle) string c_context_get_first_error = nest C "gcc_jit_context_get_first_error";
   proc (GccJitHandle) string c_context_get_last_error = nest C "gcc_jit_context_get_last_error";
 
-  proc (GccJitHandle, string) proc void c_result_get_code = nest C "gcc_jit_result_get_code";
-  proc (GccJitHandle, string) ref int c_result_get_global = nest C "gcc_jit_result_get_global";
+  proc (GccJitHandle, string) proc void c_result_get_code = nest C "jit68_result_get_code";
+  proc (GccJitHandle, string) ref int c_result_get_global = nest C "jit68_result_get_global";
   proc (GccJitHandle) void c_result_release = nest C "gcc_jit_result_release";
 
   proc (GccJitHandle) GccJitHandle c_object_get_context = nest C "gcc_jit_object_get_context";
   proc (GccJitHandle) string c_object_get_debug_string = nest C "gcc_jit_object_get_debug_string";
 
-  proc (GccJitHandle, string, int, int) GccJitHandle c_context_new_location = nest C "gcc_jit_context_new_location";
+  proc (GccJitHandle, string, int, int) GccJitHandle c_context_new_location = nest C "jit68_context_new_location";
   proc (GccJitHandle) GccJitHandle c_location_as_object = nest C "gcc_jit_location_as_object";
 
   proc (GccJitHandle) GccJitHandle c_type_as_object = nest C "gcc_jit_type_as_object";
@@ -1727,40 +1690,40 @@ def
   proc (GccJitHandle, GccJitHandle, GccJitHandle, int) GccJitHandle c_context_new_array_type = nest C "gcc_jit_context_new_array_type";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int) GccJitHandle c_context_new_array_type_u64 = nest C "gcc_jit_context_new_array_type_u64";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_field = nest C "gcc_jit_context_new_field";
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, string) GccJitHandle c_context_new_bitfield = nest C "gcc_jit_context_new_bitfield";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_field = nest C "jit68_context_new_field";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, string) GccJitHandle c_context_new_bitfield = nest C "jit68_context_new_bitfield";
   proc (GccJitHandle) GccJitHandle c_field_as_object = nest C "gcc_jit_field_as_object";
-  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_struct_type = nest C "gcc_jit_context_new_struct_type";
-  proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_opaque_struct = nest C "gcc_jit_context_new_opaque_struct";
+  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_struct_type = nest C "jit68_context_new_struct_type";
+  proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_opaque_struct = nest C "jit68_context_new_opaque_struct";
   proc (GccJitHandle) GccJitHandle c_struct_as_type = nest C "gcc_jit_struct_as_type";
   proc (GccJitHandle, GccJitHandle, int, []GccJitHandle) void c_struct_set_fields = nest C "gcc_jit_struct_set_fields";
   proc (GccJitHandle, long long int) GccJitHandle c_struct_get_field = nest C "gcc_jit_struct_get_field";
   proc (GccJitHandle) long long int c_struct_get_field_count = nest C "gcc_jit_struct_get_field_count";
-  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "gcc_jit_context_new_union_type";
+  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "jit68_context_new_union_type";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle, bool) GccJitHandle c_context_new_function_ptr_type = nest C "gcc_jit_context_new_function_ptr_type";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_param = nest C "gcc_jit_context_new_param";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_param = nest C "jit68_context_new_param";
   proc (GccJitHandle) GccJitHandle c_param_as_object = nest C "gcc_jit_param_as_object";
   proc (GccJitHandle) GccJitHandle c_param_as_lvalue = nest C "gcc_jit_param_as_lvalue";
   proc (GccJitHandle) GccJitHandle c_param_as_rvalue = nest C "gcc_jit_param_as_rvalue";
 
-  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string, int, []GccJitHandle, bool) GccJitHandle c_context_new_function = nest C "gcc_jit_context_new_function";
-  proc (GccJitHandle, string) GccJitHandle c_context_get_builtin_function = nest C "gcc_jit_context_get_builtin_function";
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string, int, []GccJitHandle, bool) GccJitHandle c_context_new_function = nest C "jit68_context_new_function";
+  proc (GccJitHandle, string) GccJitHandle c_context_get_builtin_function = nest C "jit68_context_get_builtin_function";
   proc (GccJitHandle) GccJitHandle c_function_as_object = nest C "gcc_jit_function_as_object";
   proc (GccJitHandle, int) GccJitHandle c_function_get_param = nest C "gcc_jit_function_get_param";
-  proc (GccJitHandle, string) void c_function_dump_to_dot = nest C "gcc_jit_function_dump_to_dot";
-  proc (GccJitHandle, string) GccJitHandle c_function_new_block = nest C "gcc_jit_function_new_block";
+  proc (GccJitHandle, string) void c_function_dump_to_dot = nest C "jit68_function_dump_to_dot";
+  proc (GccJitHandle, string) GccJitHandle c_function_new_block = nest C "jit68_function_new_block";
   proc (GccJitHandle) GccJitHandle c_block_as_object = nest C "gcc_jit_block_as_object";
   proc (GccJitHandle) GccJitHandle c_block_get_function = nest C "gcc_jit_block_get_function";
 
-  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string) GccJitHandle c_context_new_global = nest C "gcc_jit_context_new_global";
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string) GccJitHandle c_context_new_global = nest C "jit68_context_new_global";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_struct_constructor = nest C "gcc_jit_context_new_struct_constructor";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_union_constructor = nest C "gcc_jit_context_new_union_constructor";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle) GccJitHandle c_context_new_array_constructor = nest C "gcc_jit_context_new_array_constructor";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_global_set_initializer_rvalue = nest C "gcc_jit_global_set_initializer_rvalue";
-  proc (GccJitHandle, string) GccJitHandle c_context_get_target_builtin_function = nest C "gcc_jit_context_get_target_builtin_function";
+  proc (GccJitHandle, string) GccJitHandle c_context_get_target_builtin_function = nest C "jit68_context_get_target_builtin_function";
   proc (GccJitHandle, FIXME_VoidPtr, long long int) GccJitHandle c_global_set_initializer = nest C "gcc_jit_global_set_initializer";
   proc (GccJitHandle) void c_global_set_readonly = nest C "gcc_jit_global_set_readonly";
 
@@ -1779,7 +1742,7 @@ def
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_new_sizeof = nest C "gcc_jit_context_new_sizeof";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_new_alignof = nest C "gcc_jit_context_new_alignof";
 
-  proc (GccJitHandle, string) GccJitHandle c_context_new_string_literal = nest C "gcc_jit_context_new_string_literal";
+  proc (GccJitHandle, string) GccJitHandle c_context_new_string_literal = nest C "jit68_context_new_string_literal";
 
   proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_unary_op = nest C "gcc_jit_context_new_unary_op";
   proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_binary_op = nest C "gcc_jit_context_new_binary_op";
@@ -1806,16 +1769,16 @@ def
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_lvalue_get_address = nest C "gcc_jit_lvalue_get_address";
 
   proc (GccJitHandle, int) void c_lvalue_set_tls_model = nest C "gcc_jit_lvalue_set_tls_model";
-  proc (GccJitHandle, string) void c_lvalue_set_link_section = nest C "gcc_jit_lvalue_set_link_section";
-  proc (GccJitHandle, string) void c_lvalue_set_register_name = nest C "gcc_jit_lvalue_set_register_name";
+  proc (GccJitHandle, string) void c_lvalue_set_link_section = nest C "jit68_lvalue_set_link_section";
+  proc (GccJitHandle, string) void c_lvalue_set_register_name = nest C "jit68_lvalue_set_register_name";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_function_new_local = nest C "gcc_jit_function_new_local";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_function_new_local = nest C "jit68_function_new_local";
   proc (GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_function_new_temp = nest C "gcc_jit_function_new_temp";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle) void c_block_add_eval = nest C "gcc_jit_block_add_eval";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) void c_block_add_assignment = nest C "gcc_jit_block_add_assignment";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, int, GccJitHandle) void c_block_add_assignment_op = nest C "gcc_jit_block_add_assignment_op";
-  proc (GccJitHandle, GccJitHandle, string) void c_block_add_comment = nest C "gcc_jit_block_add_comment";
+  proc (GccJitHandle, GccJitHandle, string) void c_block_add_comment = nest C "jit68_block_add_comment";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) void c_block_end_with_conditional = nest C "gcc_jit_block_end_with_conditional";
   proc (GccJitHandle, GccJitHandle, GccJitHandle) void c_block_end_with_jump = nest C "gcc_jit_block_end_with_jump";
@@ -1828,15 +1791,15 @@ def
 
   proc (GccJitHandle) GccJitHandle c_context_new_child_context = nest C "gcc_jit_context_new_child_context";
 
-  proc (GccJitHandle, string) void c_context_dump_reproducer_to_file = nest C "gcc_jit_context_dump_reproducer_to_file";
-  proc (GccJitHandle, string, FIXME_StringPtr) void c_context_enable_dump = nest C "gcc_jit_context_enable_dump";
+  proc (GccJitHandle, string) void c_context_dump_reproducer_to_file = nest C "jit68_context_dump_reproducer_to_file";
+  proc (GccJitHandle, string, FIXME_StringPtr) void c_context_enable_dump = nest C "jit68_context_enable_dump";
 
   proc GccJitHandle c_timer_new = nest C "gcc_jit_timer_new";
   proc (GccJitHandle) void c_timer_release = nest C "gcc_jit_timer_release";
   proc (GccJitHandle, GccJitHandle) void c_context_set_timer = nest C "gcc_jit_context_set_timer";
   proc (GccJitHandle) GccJitHandle c_context_get_timer = nest C "gcc_jit_context_get_timer";
-  proc (GccJitHandle, string) void c_timer_push = nest C "gcc_jit_timer_push";
-  proc (GccJitHandle, string) void c_timer_pop = nest C "gcc_jit_timer_pop";
+  proc (GccJitHandle, string) void c_timer_push = nest C "jit68_timer_push";
+  proc (GccJitHandle, string) void c_timer_pop = nest C "jit68_timer_pop";
   proc (GccJitHandle, FIXME_FilePtr) void c_timer_print = nest C "gcc_jit_timer_print";
 
   proc (GccJitHandle, bool) void c_rvalue_set_bool_require_tail_call = nest C "gcc_jit_rvalue_set_bool_require_tail_call";
@@ -1849,15 +1812,15 @@ def
   proc int c_version_minor = nest C "gcc_jit_version_minor";
   proc int c_version_patchlevel = nest C "gcc_jit_version_patchlevel";
 
-  proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_block_add_extended_asm = nest C "gcc_jit_block_add_extended_asm";
+  proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_block_add_extended_asm = nest C "jit68_block_add_extended_asm";
   proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle, GccJitHandle) GccJitHandle c_block_end_with_extended_asm_goto = nest C "gcc_jit_block_end_with_extended_asm_goto";
   proc (GccJitHandle) GccJitHandle c_extended_asm_as_object = nest C "gcc_jit_extended_asm_as_object";
   proc (GccJitHandle, bool) void c_extended_asm_set_volatile_flag = nest C "gcc_jit_extended_asm_set_volatile_flag";
   proc (GccJitHandle, bool) void c_extended_asm_set_inline_flag = nest C "gcc_jit_extended_asm_set_inline_flag";
-  proc (GccJitHandle, string, string, GccJitHandle) void c_extended_asm_add_output_operand = nest C "gcc_jit_extended_asm_add_output_operand";
-  proc (GccJitHandle, string, string, GccJitHandle) void c_extended_asm_add_input_operand = nest C "gcc_jit_extended_asm_add_input_operand";
-  proc (GccJitHandle, string) void c_extended_asm_add_clobber = nest C "gcc_jit_extended_asm_add_clobber";
-  proc (GccJitHandle, GccJitHandle, string) void c_context_add_top_level_asm = nest C "gcc_jit_context_add_top_level_asm";
+  proc (GccJitHandle, string, string, GccJitHandle) void c_extended_asm_add_output_operand = nest C "jit68_extended_asm_add_output_operand";
+  proc (GccJitHandle, string, string, GccJitHandle) void c_extended_asm_add_input_operand = nest C "jit68_extended_asm_add_input_operand";
+  proc (GccJitHandle, string) void c_extended_asm_add_clobber = nest C "jit68_extended_asm_add_clobber";
+  proc (GccJitHandle, GccJitHandle, string) void c_context_add_top_level_asm = nest C "jit68_context_add_top_level_asm";
 
   proc (GccJitHandle) GccJitHandle c_function_get_return_type = nest C "gcc_jit_function_get_return_type";
   proc (GccJitHandle) long long int c_function_get_param_count = nest C "gcc_jit_function_get_param_count";
@@ -1877,19 +1840,19 @@ def
   proc (GccJitHandle) GccJitHandle c_type_unqualified = nest C "gcc_jit_type_unqualified";
 
   proc (GccJitHandle, int) void c_function_add_attribute = nest C "gcc_jit_function_add_attribute";
-  proc (GccJitHandle, int, string) void c_function_add_string_attribute = nest C "gcc_jit_function_add_string_attribute";
+  proc (GccJitHandle, int, string) void c_function_add_string_attribute = nest C "jit68_function_add_string_attribute";
 
   proc (GccJitHandle) GccJitHandle c_context_get_target_info = nest C "gcc_jit_context_get_target_info";
   proc (GccJitHandle) void c_target_info_release = nest C "gcc_jit_target_info_release";
-  proc (GccJitHandle, string) bool c_target_info_cpu_supports = nest C "gcc_jit_target_info_cpu_supports";
+  proc (GccJitHandle, string) bool c_target_info_cpu_supports = nest C "jit68_target_info_cpu_supports";
   proc (GccJitHandle) string c_target_info_arch = nest C "gcc_jit_target_info_arch";
   proc (GccJitHandle, int) bool c_target_info_supports_target_dependent_type = nest C "gcc_jit_target_info_supports_target_dependent_type";
 
   proc (GccJitHandle, int, ref int, long long int) void c_function_add_integer_array_attribute = nest C "gcc_jit_function_add_integer_array_attribute";
 
-  proc (GccJitHandle, int, string) void c_lvalue_add_string_attribute = nest C "gcc_jit_lvalue_add_string_attribute";
+  proc (GccJitHandle, int, string) void c_lvalue_add_string_attribute = nest C "jit68_lvalue_add_string_attribute";
 
-  proc (GccJitHandle, string) void c_context_set_output_ident = nest C "gcc_jit_context_set_output_ident";
+  proc (GccJitHandle, string) void c_context_set_output_ident = nest C "jit68_context_set_output_ident";
 
   proc (GccJitHandle) void c_context_set_abort_on_unsupported_target_builtin = nest C "gcc_jit_context_set_abort_on_unsupported_target_builtin";
 

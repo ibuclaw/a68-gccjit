@@ -10,17 +10,21 @@ A68FLAGS := -std=gnu68 $(ALL_FLAGS) -L$(B)
 
 LDFLAGS := -lgccjit
 
-all: $(B)/gccjit.o | $(B)
+OBJS := $(addprefix $(B)/, gccjit.o module-helpers.o)
+DEMO_OBJS := $(addprefix $(B)/, demo.o)
+
+all: $(OBJS) | $(B)
 
 check: $(B)/gccjit-demo $(B)/demo.o
 
-OBJS := $(addprefix $(B)/, gccjit.o demo.o)
-
-$(B)/gccjit-demo: $(OBJS)
-	$(GA68) -o $@ $(OBJS) $(LDFLAGS)
+$(B)/gccjit-demo: $(OBJS) $(DEMO_OBJS)
+	$(GA68) -o $@ $(OBJS) $(DEMO_OBJS) $(LDFLAGS)
 
 $(B)/%.o: %.a68 | $(B)
 	$(GA68) $(A68FLAGS) -c -o $@ $<
+
+$(B)/%.o: %.c | $(B)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(B):
 	[ -d $(B) ] || mkdir $(B)
