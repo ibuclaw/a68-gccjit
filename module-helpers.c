@@ -185,8 +185,8 @@ gcc_jit_struct *
 jit68_context_new_struct_type (gcc_jit_context *ctxt,
 			       gcc_jit_location *loc,
 			       uint32_t *s, size_t len, size_t stride,
-			       int num_fields,
-			       gcc_jit_field **fields)
+			       gcc_jit_field **fields,
+			       size_t num_fields, size_t /*stride*/)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_struct *result = gcc_jit_context_new_struct_type (ctxt, loc, name,
@@ -206,18 +206,40 @@ jit68_context_new_opaque_struct (gcc_jit_context *ctxt,
   return result;
 }
 
+void
+jit68_struct_set_fields (gcc_jit_struct *struct_type,
+			 gcc_jit_location *loc,
+			 gcc_jit_field **fields,
+			 size_t num_fields, size_t /*stride*/)
+{
+  gcc_jit_struct_set_fields (struct_type, loc, num_fields, fields);
+}
+
 gcc_jit_type *
 jit68_context_new_union_type (gcc_jit_context *ctxt,
 			      gcc_jit_location *loc,
 			      uint32_t *s, size_t len, size_t stride,
-			      int num_fields,
-			      gcc_jit_field **fields)
+			      gcc_jit_field **fields,
+			      size_t num_fields, size_t /*stride*/)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_type *result = gcc_jit_context_new_union_type (ctxt, loc, name,
 							 num_fields, fields);
   free (name);
   return result;
+}
+
+gcc_jit_type *
+jit68_context_new_function_ptr_type (gcc_jit_context *ctxt,
+				     gcc_jit_location *loc,
+				     gcc_jit_type *return_type,
+				     gcc_jit_type **param_types,
+				     size_t num_params, size_t /*stride*/,
+				     int is_variadic)
+{
+  return gcc_jit_context_new_function_ptr_type (ctxt, loc, return_type,
+						num_params, param_types,
+						is_variadic);
 }
 
 gcc_jit_param *
@@ -237,7 +259,8 @@ jit68_context_new_function (gcc_jit_context *ctxt, gcc_jit_location *loc,
 			    enum gcc_jit_function_kind kind,
 			    gcc_jit_type *return_type,
 			    uint32_t *s, size_t len, size_t stride,
-			    int num_params, gcc_jit_param **params,
+			    gcc_jit_param **params,
+			    size_t num_params, size_t /*stride*/,
 			    int is_variadic)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
@@ -290,9 +313,33 @@ jit68_context_new_global (gcc_jit_context *ctxt, gcc_jit_location *loc,
   return result;
 }
 
+gcc_jit_rvalue *
+jit68_context_new_struct_constructor (gcc_jit_context *ctxt,
+				      gcc_jit_location *loc,
+				      gcc_jit_type *type,
+				      gcc_jit_field **fields,
+				      size_t /*num_fields*/, size_t /*stride*/,
+				      gcc_jit_rvalue **values,
+				      size_t num_values, size_t /*stride*/)
+{
+  return gcc_jit_context_new_struct_constructor (ctxt, loc, type, num_values,
+						 fields, values);
+}
+
+gcc_jit_rvalue *
+jit68_context_new_array_constructor (gcc_jit_context *ctxt,
+				     gcc_jit_location *loc,
+				     gcc_jit_type *type,
+				     gcc_jit_rvalue **values,
+				     size_t num_values, size_t /*stride*/)
+{
+  return gcc_jit_context_new_array_constructor (ctxt, loc, type,
+						num_values, values);
+}
+
 gcc_jit_function *
 jit68_context_get_target_builtin_function (gcc_jit_context *ctxt,
-		 			   uint32_t *s, size_t len,
+					   uint32_t *s, size_t len,
 					   size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
@@ -310,6 +357,25 @@ jit68_context_new_string_literal (gcc_jit_context *ctxt,
   gcc_jit_rvalue *result = gcc_jit_context_new_string_literal (ctxt, value);
   free (value);
   return result;
+}
+
+gcc_jit_rvalue *
+jit68_context_new_call (gcc_jit_context *ctxt, gcc_jit_location *loc,
+			gcc_jit_function *func, gcc_jit_rvalue **args,
+			size_t numargs, size_t /*stride*/)
+{
+  return gcc_jit_context_new_call (ctxt, loc, func, numargs, args);
+}
+
+gcc_jit_rvalue *
+jit68_context_new_call_through_ptr (gcc_jit_context *ctxt,
+				    gcc_jit_location *loc,
+				    gcc_jit_rvalue *fn_ptr,
+				    gcc_jit_rvalue **args,
+				    size_t numargs, size_t /*stride*/)
+{
+  return gcc_jit_context_new_call_through_ptr (ctxt, loc, fn_ptr,
+					       numargs, args);
 }
 
 void
@@ -352,6 +418,16 @@ jit68_block_add_comment (gcc_jit_block *block,
 }
 
 void
+jit68_block_end_with_switch (gcc_jit_block *block, gcc_jit_location *loc,
+			     gcc_jit_rvalue *expr, gcc_jit_block *default_block,
+			     gcc_jit_case **cases,
+			     size_t num_cases, size_t /*stride*/)
+{
+  gcc_jit_block_end_with_switch (block, loc, expr, default_block,
+				 num_cases, cases);
+}
+
+void
 jit68_context_dump_reproducer_to_file (gcc_jit_context *ctxt,
 				       uint32_t *s, size_t len, size_t stride)
 {
@@ -388,6 +464,17 @@ jit68_timer_pop (gcc_jit_timer *timer,
   free (item_name);
 }
 
+gcc_jit_rvalue *
+jit68_context_new_rvalue_from_vector (gcc_jit_context *ctxt,
+				      gcc_jit_location *loc,
+				      gcc_jit_type *vec_type,
+				      gcc_jit_rvalue **elements,
+				      size_t num_elements, size_t /*stride*/)
+{
+  return gcc_jit_context_new_rvalue_from_vector (ctxt, loc, vec_type,
+						 num_elements, elements);
+}
+
 gcc_jit_extended_asm *
 jit68_block_add_extended_asm (gcc_jit_block *block,
 			      gcc_jit_location *loc,
@@ -404,8 +491,9 @@ gcc_jit_extended_asm *
 jit68_block_end_with_extended_asm_goto (gcc_jit_block *block,
 					gcc_jit_location *loc,
 					uint32_t *s, size_t len, size_t stride,
-					int num_goto_blocks,
 					gcc_jit_block **goto_blocks,
+					size_t num_goto_blocks,
+					size_t /*stride*/,
 					gcc_jit_block *fallthrough_block)
 {
   char *asm_template = ucs4_to_utf8 (s, len, stride);

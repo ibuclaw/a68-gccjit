@@ -605,14 +605,13 @@ def
                                                 width, name);
      res);
 
-  { FIXME: num_fields redundant? }
   { Create a struct type from an array of fields. }
   pub proc jit_new_struct_type = (JIT_Context ctxt, JIT_Location location,
-                                  string name, int num_fields, []JIT_Field fields) JIT_Struct:
+                                  string name, []JIT_Field fields) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_struct_type(jit_context of ctxt,
                                                     jit_location of location,
-                                                    name, num_fields,
+                                                    name,
                                                     jit_field of fields);
      res);
 
@@ -631,13 +630,11 @@ def
      jit_type of res := c_struct_as_type(jit_struct of struct_type);
      res);
 
-  { FIXME: num_fields redundant? }
   { Populating the fields of a formerly-opaque struct type. }
   pub proc struct_set_fields = (JIT_Struct struct_type, JIT_Location location,
-                                int num_fields, []JIT_Field fields) void:
+                                []JIT_Field fields) void:
     c_struct_set_fields(jit_struct of struct_type,
                         jit_location of location,
-                        num_fields,
                         jit_field of fields);
 
   { Get a field by index. }
@@ -650,28 +647,25 @@ def
   pub proc struct_get_field_count = (JIT_Struct struct_type) long long int:
     c_struct_get_field_count(jit_struct of struct_type);
 
-  { FIXME: num_fields redundant? }
   { Unions work similarly to structs. }
   pub proc jit_new_union_type = (JIT_Context ctxt, JIT_Location location,
-                                 string name, int num_fields, []JIT_Field fields) JIT_Struct:
+                                 string name, []JIT_Field fields) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_union_type(jit_context of ctxt,
                                                    jit_location of location,
-                                                   name, num_fields,
+                                                   name,
                                                    jit_field of fields);
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
-  { FIXME: num_params redundant? }
   { Create a function pointer type. }
   pub proc jit_new_function_ptr_type = (JIT_Context ctxt, JIT_Location location,
-                                        JIT_Type return_type, int num_params,
-                                        []JIT_Type param_types, bool is_variadic) JIT_Type:
+                                        JIT_Type return_type, []JIT_Type param_types,
+                                        bool is_variadic) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_function_ptr_type(jit_context of ctxt,
                                                         jit_location of location,
                                                         jit_type of return_type,
-                                                        num_params,
                                                         jit_type of param_types,
                                                         is_variadic);
      res);
@@ -702,17 +696,16 @@ def
      esac;
      res);
 
-  { FIXME: num_params redundant? }
   { Create a function. }
   pub proc jit_new_function = (JIT_Context ctxt, JIT_Location location, Function_Kind kind,
-                               JIT_Type return_type, string name, int num_params,
-                               []JIT_Param params, bool is_variadic) JIT_Function:
+                               JIT_Type return_type, string name, []JIT_Param params,
+                               bool is_variadic) JIT_Function:
     (JIT_Function res;
      jit_function of res := c_context_new_function(jit_context of ctxt,
                                                    jit_location of location,
                                                    function_kind of kind,
                                                    jit_type of return_type,
-                                                   name, num_params,
+                                                   name,
                                                    jit_param of params,
                                                    is_variadic);
      res);
@@ -758,16 +751,14 @@ def
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
-  { FIXME: num_values redundant? }
   { Create a constructor for a struct as an rvalue. }
   pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Location location,
-                                         JIT_Type type, long long int num_values,
-                                         []JIT_Field fields, []JIT_Rvalue values) JIT_Rvalue:
+                                         JIT_Type type, []JIT_Field fields,
+                                         []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_struct_constructor(jit_context of ctxt,
                                                            jit_location of location,
                                                            jit_type of type,
-                                                           num_values,
                                                            jit_field of fields,
                                                            jit_rvalue of values);
      res);
@@ -786,16 +777,13 @@ def
      res);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
-  { FIXME: num_values redundant? }
   { Create a constructor for an array as an rvalue. }
   pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Location location,
-                                        JIT_Type type, long long int num_values,
-                                        []JIT_Rvalue values) JIT_Rvalue:
+                                        JIT_Type type, []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_array_constructor(jit_context of ctxt,
                                                           jit_location of location,
                                                           jit_type of type,
-                                                          num_values,
                                                           jit_rvalue of values);
      res);
 
@@ -957,28 +945,23 @@ def
                                                                   esac));
      res);
 
-  { FIXME: numargs redundant? }
   { Call of a specific function. }
   pub proc jit_new_call = (JIT_Context ctxt, JIT_Location location,
-                           JIT_Function function, int numargs, []JIT_Rvalue args) JIT_Rvalue:
+                           JIT_Function function, []JIT_Rvalue args) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_call(jit_context of ctxt,
                                              jit_location of location,
                                              jit_function of function,
-                                             numargs,
                                              jit_rvalue of args);
      res);
 
-  { FIXME: numargs redundant? }
   { Call through a function pointer. }
   pub proc jit_new_call_through_ptr = (JIT_Context ctxt, JIT_Location location,
-                                       JIT_Rvalue fn_ptr, int numargs,
-                                       []JIT_Rvalue args) JIT_Rvalue:
+                                       JIT_Rvalue fn_ptr, []JIT_Rvalue args) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_call_through_ptr(jit_context of ctxt,
                                                          jit_location of location,
                                                          jit_rvalue of fn_ptr,
-                                                         numargs,
                                                          jit_rvalue of args);
      res);
 
@@ -1289,11 +1272,10 @@ def
                                             jit_block of dest_block);
      res);
 
-  { FIXME: num_cases redundant? }
   { Terminate a block by adding evaluation of an rvalue, then performing a multiway branch. }
   pub proc block_end_with_switch = (JIT_Block block, JIT_Location location,
                                     JIT_Rvalue_Variant expr, JIT_Block default_block,
-                                    int num_cases, []JIT_Case cases) void:
+                                    []JIT_Case cases) void:
     c_block_end_with_switch(jit_block of block,
                             jit_location of location,
                             jit_rvalue of (case expr in
@@ -1302,7 +1284,6 @@ def
                                            (JIT_Rvalue rvalue): rvalue
                                            esac),
                             jit_block of default_block,
-                            num_cases,
                             jit_case of cases);
 
   { Given an existing JIT context, create a child context. }
@@ -1380,16 +1361,13 @@ def
                                                  jit_location of location);
      res);
 
-  { FIXME: num_elements redundant? }
   { Build a vector rvalue from an array of elements. }
   pub proc jit_new_rvalue_from_vector = (JIT_Context ctxt, JIT_Location location,
-                                         JIT_Type type, long long int num_elements,
-                                         []JIT_Rvalue  elements) JIT_Rvalue:
+                                         JIT_Type type, []JIT_Rvalue elements) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_rvalue_from_vector(jit_context of ctxt,
                                                            jit_location of location,
                                                            jit_type of type,
-                                                           num_elements,
                                                            jit_rvalue of elements);
      res);
 
@@ -1414,19 +1392,15 @@ def
                                                          asm_template);
      res);
 
-  { FIXME: string -> char* }
-  { FIXME: num_goto_blocks redundant? }
   { Create a gcc_jit_extended_asm for an extended asm statement that may perform jumps,
     and use it to terminate the given block. }
   pub proc block_end_with_extended_asm_goto = (JIT_Block block, JIT_Location location,
-                                               string asm_template, int num_goto_blocks,
-                                               []JIT_Block goto_blocks,
+                                               string asm_template, []JIT_Block goto_blocks,
                                                JIT_Block fallthrough_block) JIT_Extended_Asm:
     (JIT_Extended_Asm res;
      jit_extended_asm of res := c_block_end_with_extended_asm_goto(jit_block of block,
                                                                    jit_location of location,
                                                                    asm_template,
-                                                                   num_goto_blocks,
                                                                    jit_block of goto_blocks,
                                                                    jit_block of fallthrough_block);
      res);
@@ -1693,22 +1667,22 @@ def
   proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_field = nest C "jit68_context_new_field";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, int, string) GccJitHandle c_context_new_bitfield = nest C "jit68_context_new_bitfield";
   proc (GccJitHandle) GccJitHandle c_field_as_object = nest C "gcc_jit_field_as_object";
-  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_struct_type = nest C "jit68_context_new_struct_type";
+  proc (GccJitHandle, GccJitHandle, string, []GccJitHandle) GccJitHandle c_context_new_struct_type = nest C "jit68_context_new_struct_type";
   proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_opaque_struct = nest C "jit68_context_new_opaque_struct";
   proc (GccJitHandle) GccJitHandle c_struct_as_type = nest C "gcc_jit_struct_as_type";
-  proc (GccJitHandle, GccJitHandle, int, []GccJitHandle) void c_struct_set_fields = nest C "gcc_jit_struct_set_fields";
+  proc (GccJitHandle, GccJitHandle, []GccJitHandle) void c_struct_set_fields = nest C "jit68_struct_set_fields";
   proc (GccJitHandle, long long int) GccJitHandle c_struct_get_field = nest C "gcc_jit_struct_get_field";
   proc (GccJitHandle) long long int c_struct_get_field_count = nest C "gcc_jit_struct_get_field_count";
-  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "jit68_context_new_union_type";
+  proc (GccJitHandle, GccJitHandle, string, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "jit68_context_new_union_type";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle, bool) GccJitHandle c_context_new_function_ptr_type = nest C "gcc_jit_context_new_function_ptr_type";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle, bool) GccJitHandle c_context_new_function_ptr_type = nest C "jit68_context_new_function_ptr_type";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_param = nest C "jit68_context_new_param";
   proc (GccJitHandle) GccJitHandle c_param_as_object = nest C "gcc_jit_param_as_object";
   proc (GccJitHandle) GccJitHandle c_param_as_lvalue = nest C "gcc_jit_param_as_lvalue";
   proc (GccJitHandle) GccJitHandle c_param_as_rvalue = nest C "gcc_jit_param_as_rvalue";
 
-  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string, int, []GccJitHandle, bool) GccJitHandle c_context_new_function = nest C "jit68_context_new_function";
+  proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string, []GccJitHandle, bool) GccJitHandle c_context_new_function = nest C "jit68_context_new_function";
   proc (GccJitHandle, string) GccJitHandle c_context_get_builtin_function = nest C "jit68_context_get_builtin_function";
   proc (GccJitHandle) GccJitHandle c_function_as_object = nest C "gcc_jit_function_as_object";
   proc (GccJitHandle, int) GccJitHandle c_function_get_param = nest C "gcc_jit_function_get_param";
@@ -1719,9 +1693,9 @@ def
 
   proc (GccJitHandle, GccJitHandle, int, GccJitHandle, string) GccJitHandle c_context_new_global = nest C "jit68_context_new_global";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_struct_constructor = nest C "gcc_jit_context_new_struct_constructor";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_struct_constructor = nest C "jit68_context_new_struct_constructor";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_union_constructor = nest C "gcc_jit_context_new_union_constructor";
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle) GccJitHandle c_context_new_array_constructor = nest C "gcc_jit_context_new_array_constructor";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_array_constructor = nest C "jit68_context_new_array_constructor";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_global_set_initializer_rvalue = nest C "gcc_jit_global_set_initializer_rvalue";
   proc (GccJitHandle, string) GccJitHandle c_context_get_target_builtin_function = nest C "jit68_context_get_target_builtin_function";
   proc (GccJitHandle, FIXME_VoidPtr, long long int) GccJitHandle c_global_set_initializer = nest C "gcc_jit_global_set_initializer";
@@ -1748,8 +1722,8 @@ def
   proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_binary_op = nest C "gcc_jit_context_new_binary_op";
   proc (GccJitHandle, GccJitHandle, int, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_comparison = nest C "gcc_jit_context_new_comparison";
 
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle) GccJitHandle c_context_new_call = nest C "gcc_jit_context_new_call";
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle) GccJitHandle c_context_new_call_through_ptr = nest C "gcc_jit_context_new_call_through_ptr";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_call = nest C "jit68_context_new_call";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_call_through_ptr = nest C "jit68_context_new_call_through_ptr";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_cast = nest C "gcc_jit_context_new_cast";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_bitcast = nest C "gcc_jit_context_new_bitcast";
@@ -1787,7 +1761,7 @@ def
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle) GccJitHandle c_context_new_case = nest C "gcc_jit_context_new_case";
   proc (GccJitHandle) GccJitHandle c_case_as_object = nest C "gcc_jit_case_as_object";
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, int, []GccJitHandle) void c_block_end_with_switch = nest C "gcc_jit_block_end_with_switch";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) void c_block_end_with_switch = nest C "jit68_block_end_with_switch";
 
   proc (GccJitHandle) GccJitHandle c_context_new_child_context = nest C "gcc_jit_context_new_child_context";
 
@@ -1806,14 +1780,14 @@ def
   proc (GccJitHandle, long long int) GccJitHandle c_type_get_aligned = nest C "gcc_jit_type_get_aligned";
   proc (GccJitHandle, long long int) GccJitHandle c_type_get_vector = nest C "gcc_jit_type_get_vector";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_function_get_address = nest C "gcc_jit_function_get_address";
-  proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int, []GccJitHandle) GccJitHandle c_context_new_rvalue_from_vector = nest C "gcc_jit_context_new_rvalue_from_vector";
+  proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_rvalue_from_vector = nest C "jit68_context_new_rvalue_from_vector";
 
   proc int c_version_major = nest C "gcc_jit_version_major";
   proc int c_version_minor = nest C "gcc_jit_version_minor";
   proc int c_version_patchlevel = nest C "gcc_jit_version_patchlevel";
 
   proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_block_add_extended_asm = nest C "jit68_block_add_extended_asm";
-  proc (GccJitHandle, GccJitHandle, string, int, []GccJitHandle, GccJitHandle) GccJitHandle c_block_end_with_extended_asm_goto = nest C "gcc_jit_block_end_with_extended_asm_goto";
+  proc (GccJitHandle, GccJitHandle, string, []GccJitHandle, GccJitHandle) GccJitHandle c_block_end_with_extended_asm_goto = nest C "jit68_block_end_with_extended_asm_goto";
   proc (GccJitHandle) GccJitHandle c_extended_asm_as_object = nest C "gcc_jit_extended_asm_as_object";
   proc (GccJitHandle, bool) void c_extended_asm_set_volatile_flag = nest C "gcc_jit_extended_asm_set_volatile_flag";
   proc (GccJitHandle, bool) void c_extended_asm_set_inline_flag = nest C "gcc_jit_extended_asm_set_inline_flag";
