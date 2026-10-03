@@ -1,4 +1,100 @@
+{ Brainf*** JIT frontend written in Algol68 }
 access Gccjit
 (
-  0
+  JIT_Context ctxt := jit_acquire;
+  set_program_name(ctxt, "brainf***");
+  {jit_add_command_line_option(ctxt, "-fchecking=0");}
+  {set_optimization_level(ctxt, 1);}
+  {set_dump_initial_gimple(ctxt, true);}
+  JIT_Location no_location;
+  { int, short, unsigned short }
+  JIT_Type c_int = jit_get_type(ctxt, type_int);
+  JIT_Type c_short = jit_get_type(ctxt, type_short);
+  JIT_Type c_ushort = jit_get_type(ctxt, type_unsigned_short);
+  { int bfmain(void) }
+  JIT_Function func := jit_new_function(ctxt, no_location, function_exported,
+                                        c_int, "bfmain", (), false);
+  JIT_Block block := function_new_block(func, "start");
+  { static short[65536] stack }
+  JIT_Lvalue stack = jit_new_global(ctxt, no_location, global_internal,
+                                    jit_new_array_type(ctxt, no_location, c_short, 65536), "stack");
+  { unsigned short stackp }
+  JIT_Lvalue stackp = function_new_local(func, no_location, c_ushort, "stackp");
+  { stackp = 0 }
+  block_add_assignment(block, no_location, stackp, jit_new_rvalue_zero(ctxt, c_ushort));
+  { 1u, 1, 0, putchar, getchar, stack, stackp, stack[stackp] }
+  JIT_RValue one_u = jit_new_rvalue_one(ctxt, c_ushort);
+  JIT_RValue one_s = jit_new_rvalue_one(ctxt, c_short);
+  JIT_RValue zero_s = jit_new_rvalue_zero(ctxt, c_short);
+  JIT_Function putchar = jit_get_builtin_function(ctxt, "putchar");
+  JIT_Function getchar = jit_new_function(ctxt, no_location, function_imported,
+                                          c_int, "getchar", (), false);
+  proc stack_cell = JIT_Lvalue: jit_new_array_access(ctxt, no_location, stack, stackp);
+  { Main loop for parser/code generator }
+  int finput := if argc > 1 then fopen(argv(2), file_o_rdonly) else stdin fi;
+  int label_num := 0;
+  proc read_to_block = (ref JIT_Block cur_block) void:
+  (
+    char ch;
+    while ch := fgetc(finput); ch /= eof_char
+    do
+      if ch = ">" then
+        { stackp += 1u }
+        block_add_assignment_op(cur_block, no_location, stackp, binary_plus, one_u)
+      elif ch = "<" then
+        { stack -= 1u }
+        block_add_assignment_op(cur_block, no_location, stackp, binary_minus, one_u)
+      elif ch = "+" then
+        { stack[stackp] += 1 }
+        block_add_assignment_op(cur_block, no_location, stack_cell, binary_plus, one_s)
+      elif ch = "-" then
+        { stack[stackp] -= 1 }
+        block_add_assignment_op(cur_block, no_location, stack_cell, binary_minus, one_s)
+      elif ch = "." then
+        { putchar(stack[stackp]) }
+        block_add_eval(cur_block, no_location,
+                        jit_new_call(ctxt, no_location, putchar,
+                                     jit_new_cast(ctxt, no_location, stack_cell, c_int)))
+      elif ch = "," then
+        { stack[stackp] = getchar() }
+        block_add_assignment(cur_block, no_location, stack_cell,
+                             jit_new_cast(ctxt, no_location,
+                                          jit_new_call(ctxt, no_location, getchar, ()), c_short))
+      elif ch = "[" then
+        { while (stack[stackp] != 0) [loop] }
+        JIT_Block cond_block := function_new_block(func, "cond" + whole(label_num, 0));
+        JIT_Block loop_block := function_new_block(func, "loop" + whole(label_num, 0));
+        JIT_Block exit_block := function_new_block(func, "exit" + whole(label_num, 0));
+        label_num +:= 1;
+        { Close current block with jump to condition }
+        block_end_with_jump(cur_block, no_location, cond_block);
+        { Evaluate condition, jumping to the loop_block if true, else exit_block }
+        JIT_Rvalue cond = jit_new_comparison(ctxt, no_location, comparison_ne, stack_cell, zero_s);
+        block_end_with_conditional(cond_block, no_location, cond, loop_block, exit_block);
+        { Do code generation for the loop block }
+        read_to_block(loop_block);
+        { Close loop with jump back to condition }
+        block_end_with_jump(loop_block, no_location, cond_block);
+        { We now start generating code from the exit block }
+        cur_block := exit_block
+      elif ch = "]" then
+        { End of loop }
+        goto return
+      else
+        { Silently ignore everything else. }
+        skip
+      fi
+    od
+    exit return: 0
+  );
+  { [body] }
+  read_to_block(block);
+  { return 0 }
+  block_end_with_return(block, no_location, jit_new_rvalue_zero(ctxt, c_int));
+  { Complle and run it! }
+  JIT_Result result = jit_compile(ctxt);
+  proc void mainfn = result_get_code(result, "bfmain");
+  mainfn;
+  result_release(result);
+  jit_release(ctxt)
 )
