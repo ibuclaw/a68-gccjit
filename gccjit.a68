@@ -453,10 +453,8 @@ def
     c_context_dump_to_file(jit_context of ctxt,
                            path, update_locations);
 
-  { FIXME: int -> FILE }
   { Enable ongoing logging of the context's activity to the given logfile. }
-  pub proc jit_set_logfile = (JIT_Context ctxt, FIXME_FilePtr logfile,
-                              int flags, int verbosity) void:
+  pub proc jit_set_logfile = (JIT_Context ctxt, int logfile, int flags, int verbosity) void:
     c_context_set_logfile(jit_context of ctxt,
                           logfile, flags, verbosity);
 
@@ -1371,9 +1369,8 @@ def
   pub proc timer_pop = (JIT_Timer timer, string name) void:
     c_timer_pop(jit_timer of timer, name);
 
-  { FIXME: int -> FILE }
   { Print timing information to the given stream about activity since the timer was started. }
-  pub proc timer_print = (JIT_Timer timer, FIXME_FilePtr fd_out) void:
+  pub proc timer_print = (JIT_Timer timer, int fd_out) void:
     c_timer_print(jit_timer of timer, fd_out);
 
   { Mark/clear a call as needing tail-call optimization. }
@@ -1664,12 +1661,10 @@ def
       implement a "glue" function to convert strings between the two languages.
     - C `struct **` arrays are mapped to `[]GccJitHandle`, for the same reasons
       as with mapping to strings.
-    - C `FILE *` is mapped to `FIXME_FilePtr` - TODO for later.
     - C `void *` is mapped to `FIXME_VoidPtr` - TODO for later.
     - C `char **` is mapped to `FIXME_StringPtr` - TODO for later.
   }
   mode GccJitHandle = ref struct (int handle);
-  mode FIXME_FilePtr = ref struct (int fileptr);
   mode FIXME_VoidPtr = ref struct (int bottom);
   mode FIXME_StringPtr = ref struct (int stringptr);
 
@@ -1687,7 +1682,7 @@ def
   proc (GccJitHandle) GccJitHandle c_context_compile = nest C "gcc_jit_context_compile";
   proc (GccJitHandle, int, string) void c_context_compile_to_file = nest C "jit68_context_compile_to_file";
   proc (GccJitHandle, string, int) void c_context_dump_to_file = nest C "jit68_context_dump_to_file";
-  proc (GccJitHandle, FIXME_FilePtr, int, int) void c_context_set_logfile = nest C "gcc_jit_context_set_logfile";
+  proc (GccJitHandle, int, int, int) void c_context_set_logfile = nest C "jit68_context_set_logfile";
   proc (GccJitHandle) string c_context_get_first_error = nest C "gcc_jit_context_get_first_error";
   proc (GccJitHandle) string c_context_get_last_error = nest C "gcc_jit_context_get_last_error";
 
@@ -1824,7 +1819,7 @@ def
   proc (GccJitHandle) GccJitHandle c_context_get_timer = nest C "gcc_jit_context_get_timer";
   proc (GccJitHandle, string) void c_timer_push = nest C "jit68_timer_push";
   proc (GccJitHandle, string) void c_timer_pop = nest C "jit68_timer_pop";
-  proc (GccJitHandle, FIXME_FilePtr) void c_timer_print = nest C "gcc_jit_timer_print";
+  proc (GccJitHandle, int) void c_timer_print = nest C "jit68_timer_print";
 
   proc (GccJitHandle, bool) void c_rvalue_set_bool_require_tail_call = nest C "gcc_jit_rvalue_set_bool_require_tail_call";
   proc (GccJitHandle, long long int) GccJitHandle c_type_get_aligned = nest C "gcc_jit_type_get_aligned";

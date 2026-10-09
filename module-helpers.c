@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>  */
 #include <libgccjit.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 /* Convert from Algol68 UCS-4 `string` to C UTF8 `char *`.  */
 static char *
@@ -73,6 +74,23 @@ ucs4_to_utf8 (const uint32_t *s, size_t n, size_t stride)
   return result;
 }
 
+/* Open a FILE* from the given file descriptor.  */
+static FILE *
+fd_to_file (int fd)
+{
+  switch (fcntl (fd, F_GETFL) & O_ACCMODE)
+    {
+    case O_RDONLY:
+      return fdopen (fd, "r");
+    case O_WRONLY:
+      return fdopen (fd, "w");
+    case O_RDWR:
+      return fdopen (fd, "r+");
+    default:
+      return NULL;
+    }
+}
+
 /* `nest C` formal holes that need a little more assistance for mapping between
    Algol68 types to C types.  */
 void
@@ -121,6 +139,14 @@ jit68_context_dump_to_file (gcc_jit_context *ctxt,
   char *path = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_dump_to_file (ctxt, path, update_locations);
   free (path);
+}
+
+void
+jit68_context_set_logfile (gcc_jit_context *ctxt,
+			   int fd, int flags, int verbosity)
+{
+  FILE *logfile = fd_to_file (fd);
+  gcc_jit_context_set_logfile (ctxt, logfile, flags, verbosity);
 }
 
 void *
@@ -462,6 +488,13 @@ jit68_timer_pop (gcc_jit_timer *timer,
   char *item_name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_timer_pop (timer, item_name);
   free (item_name);
+}
+
+void
+jit68_timer_print (gcc_jit_timer *timer, int fd_out)
+{
+  FILE *f_out = fd_to_file (fd_out);
+  gcc_jit_timer_print (timer, f_out);
 }
 
 gcc_jit_rvalue *
