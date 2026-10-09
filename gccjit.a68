@@ -63,6 +63,9 @@ def
   mode JIT_RValue_Variant = union (JIT_Rvalue, JIT_Lvalue, JIT_Param);
   mode JIT_LValue_Variant = union (JIT_Lvalue, JIT_Param);
 
+  { JIT_Location capsulates a source code location, and are optional. }
+  JIT_Location no_location;
+
   { Options taking string values. }
   mode Str_Option = struct (int str_option);
   Str_Option option_progname,
@@ -565,8 +568,8 @@ def
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an array type T[N] for a constant N. }
-  pub proc jit_new_array_type = (JIT_Context ctxt, JIT_Location location,
-                                 JIT_Type element_type, int num_elements) JIT_Type:
+  pub proc jit_new_array_type_loc = (JIT_Context ctxt, JIT_Location location,
+                                     JIT_Type element_type, int num_elements) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_array_type(jit_context of ctxt,
                                                  jit_location of location,
@@ -574,10 +577,15 @@ def
                                                  num_elements);
      res);
 
+  pub proc jit_new_array_type = (JIT_Context ctxt, JIT_Type element_type,
+                                 int num_elements) JIT_Type:
+    jit_new_array_type_loc(ctxt, no_location, element_type, num_elements);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an array type T[N] using a 64-bit element count. }
-  pub proc jit_new_array_type_u64 = (JIT_Context ctxt, JIT_Location location,
-                                     JIT_Type element_type, long long int num_elements) JIT_Type:
+  pub proc jit_new_array_type_u64_loc = (JIT_Context ctxt, JIT_Location location,
+                                         JIT_Type element_type,
+                                         long long int num_elements) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_array_type_u64(jit_context of ctxt,
                                                      jit_location of location,
@@ -585,10 +593,14 @@ def
                                                      num_elements);
      res);
 
+  pub proc jit_new_array_type_u64 = (JIT_Context ctxt, JIT_Type element_type,
+                                     long long int num_elements) JIT_Type:
+    jit_new_array_type_u64_loc(ctxt, no_location, element_type, num_elements);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a field, for use within a struct or union. }
-  pub proc jit_new_field = (JIT_Context ctxt, JIT_Location location,
-                            JIT_Type type, string name) JIT_Field:
+  pub proc jit_new_field_loc = (JIT_Context ctxt, JIT_Location location,
+                                JIT_Type type, string name) JIT_Field:
     (JIT_Field res;
      jit_field of res := c_context_new_field(jit_context of ctxt,
                                              jit_location of location,
@@ -596,9 +608,12 @@ def
                                              name);
      res);
 
+  pub proc jit_new_field = (JIT_Context ctxt, JIT_Type type, string name) JIT_Field:
+    jit_new_field_loc(ctxt, no_location, type, name);
+
   { Create a bit field for use within a struct or union. }
-  pub proc jit_new_bitfield = (JIT_Context ctxt, JIT_Location location,
-                               JIT_Type type, int width, string name) JIT_Field:
+  pub proc jit_new_bitfield_loc = (JIT_Context ctxt, JIT_Location location,
+                                   JIT_Type type, int width, string name) JIT_Field:
     (JIT_Field res;
      jit_field of res := c_context_new_bitfield(jit_context of ctxt,
                                                 jit_location of location,
@@ -606,9 +621,13 @@ def
                                                 width, name);
      res);
 
+  pub proc jit_new_bitfield = (JIT_Context ctxt, JIT_Type type, int width,
+                               string name) JIT_Field:
+    jit_new_bitfield_loc(ctxt, no_location, type, width, name);
+
   { Create a struct type from an array of fields. }
-  pub proc jit_new_struct_type = (JIT_Context ctxt, JIT_Location location,
-                                  string name, []JIT_Field fields) JIT_Struct:
+  pub proc jit_new_struct_type_loc = (JIT_Context ctxt, JIT_Location location,
+                                      string name, []JIT_Field fields) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_struct_type(jit_context of ctxt,
                                                     jit_location of location,
@@ -616,14 +635,20 @@ def
                                                     jit_field of fields);
      res);
 
+  pub proc jit_new_struct_type = (JIT_Context ctxt, string name, []JIT_Field fields) JIT_Struct:
+    jit_new_struct_type_loc(ctxt, no_location, name, fields);
+
   { Create an opaque struct type. }
-  pub proc jit_new_opaque_struct = (JIT_Context ctxt, JIT_Location location,
-                                    string name) JIT_Struct:
+  pub proc jit_new_opaque_struct_loc = (JIT_Context ctxt, JIT_Location location,
+                                        string name) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_opaque_struct(jit_context of ctxt,
                                                       jit_location of location,
                                                       name);
      res);
+
+  pub proc jit_new_opaque_struct = (JIT_Context ctxt, string name) JIT_Struct:
+    jit_new_opaque_struct_loc(ctxt, no_location, name);
 
   { Upcast a struct to a type. }
   pub proc struct_as_type = (JIT_Struct struct_type) JIT_Type:
@@ -632,11 +657,14 @@ def
      res);
 
   { Populating the fields of a formerly-opaque struct type. }
-  pub proc struct_set_fields = (JIT_Struct struct_type, JIT_Location location,
-                                []JIT_Field fields) void:
+  pub proc struct_set_fields_loc = (JIT_Struct struct_type, JIT_Location location,
+                                    []JIT_Field fields) void:
     c_struct_set_fields(jit_struct of struct_type,
                         jit_location of location,
                         jit_field of fields);
+
+  pub proc struct_set_fields = (JIT_Struct struct_type, []JIT_Field fields) void:
+    struct_set_fields_loc(struct_type, no_location, fields);
 
   { Get a field by index. }
   pub proc struct_get_field = (JIT_Struct struct_type, long long int index) JIT_Field:
@@ -649,8 +677,8 @@ def
     c_struct_get_field_count(jit_struct of struct_type);
 
   { Unions work similarly to structs. }
-  pub proc jit_new_union_type = (JIT_Context ctxt, JIT_Location location,
-                                 string name, []JIT_Field fields) JIT_Struct:
+  pub proc jit_new_union_type_loc = (JIT_Context ctxt, JIT_Location location,
+                                     string name, []JIT_Field fields) JIT_Struct:
     (JIT_Struct res;
      jit_struct of res := c_context_new_union_type(jit_context of ctxt,
                                                    jit_location of location,
@@ -658,11 +686,14 @@ def
                                                    jit_field of fields);
      res);
 
+  pub proc jit_new_union_type = (JIT_Context ctxt, string name, []JIT_Field fields) JIT_Struct:
+    jit_new_union_type_loc(ctxt, no_location, name, fields);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a function pointer type. }
-  pub proc jit_new_function_ptr_type = (JIT_Context ctxt, JIT_Location location,
-                                        JIT_Type return_type, []JIT_Type param_types,
-                                        bool is_variadic) JIT_Type:
+  pub proc jit_new_function_ptr_type_loc = (JIT_Context ctxt, JIT_Location location,
+                                            JIT_Type return_type, []JIT_Type param_types,
+                                            bool is_variadic) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_function_ptr_type(jit_context of ctxt,
                                                         jit_location of location,
@@ -671,16 +702,23 @@ def
                                                         is_variadic);
      res);
 
+  pub proc jit_new_function_ptr_type = (JIT_Context ctxt, JIT_Type return_type,
+                                        []JIT_Type param_types, bool is_variadic) JIT_Type:
+    jit_new_function_ptr_type_loc(ctxt, no_location, return_type, param_types, is_variadic);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a function param. }
-  pub proc jit_new_param = (JIT_Context ctxt, JIT_Location location,
-                            JIT_Type type, string name) JIT_Param:
+  pub proc jit_new_param_loc = (JIT_Context ctxt, JIT_Location location,
+                                JIT_Type type, string name) JIT_Param:
     (JIT_Param res;
      jit_param of res := c_context_new_param(jit_context of ctxt,
                                              jit_location of location,
                                              jit_type of type,
                                              name);
      res);
+
+  pub proc jit_new_param = (JIT_Context ctxt, JIT_Type type, string name) JIT_Param:
+    jit_new_param_loc(ctxt, no_location, type, name);
 
   { Upcasting to lvalue. }
   pub proc as_lvalue = (JIT_Lvalue_Variant variant) JIT_Lvalue:
@@ -702,9 +740,9 @@ def
      res);
 
   { Create a function. }
-  pub proc jit_new_function = (JIT_Context ctxt, JIT_Location location, Function_Kind kind,
-                               JIT_Type return_type, string name, []JIT_Param params,
-                               bool is_variadic) JIT_Function:
+  pub proc jit_new_function_loc = (JIT_Context ctxt, JIT_Location location, Function_Kind kind,
+                                   JIT_Type return_type, string name, []JIT_Param params,
+                                   bool is_variadic) JIT_Function:
     (JIT_Function res;
      jit_function of res := c_context_new_function(jit_context of ctxt,
                                                    jit_location of location,
@@ -714,6 +752,10 @@ def
                                                    jit_param of params,
                                                    is_variadic);
      res);
+
+  pub proc jit_new_function = (JIT_Context ctxt, Function_Kind kind, JIT_Type return_type,
+                               string name, []JIT_Param params, bool is_variadic) JIT_Function:
+    jit_new_function_loc(ctxt, no_location, kind, return_type, name, params, is_variadic);
 
   { Create a reference to a builtin function. }
   pub proc jit_get_builtin_function = (JIT_Context ctxt, string name) JIT_Function:
@@ -745,8 +787,8 @@ def
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a global variable. }
-  pub proc jit_new_global = (JIT_Context ctxt, JIT_Location location,
-                             Global_Kind kind, JIT_Type type, string name) JIT_Lvalue:
+  pub proc jit_new_global_loc = (JIT_Context ctxt, JIT_Location location,
+                                 Global_Kind kind, JIT_Type type, string name) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_context_new_global(jit_context of ctxt,
                                                jit_location of location,
@@ -755,11 +797,15 @@ def
                                                name);
      res);
 
+  pub proc jit_new_global = (JIT_Context ctxt, Global_Kind kind, JIT_Type type,
+                             string name) JIT_Lvalue:
+    jit_new_global_loc(ctxt, no_location, kind, type, name);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a constructor for a struct as an rvalue. }
-  pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Location location,
-                                         JIT_Type type, []JIT_Field fields,
-                                         []JIT_Rvalue values) JIT_Rvalue:
+  pub proc jit_new_struct_constructor_loc = (JIT_Context ctxt, JIT_Location location,
+                                             JIT_Type type, []JIT_Field fields,
+                                             []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_struct_constructor(jit_context of ctxt,
                                                            jit_location of location,
@@ -768,11 +814,15 @@ def
                                                            jit_rvalue of values);
      res);
 
+  pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Type type,
+                                         []JIT_Field fields, []JIT_Rvalue values) JIT_Rvalue:
+    jit_new_struct_constructor_loc(ctxt, no_location, type, fields, values);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a constructor for a union as an rvalue. }
-  pub proc jit_new_union_constructor = (JIT_Context ctxt, JIT_Location location,
-                                        JIT_Type type, JIT_Field field,
-                                        JIT_Rvalue value) JIT_Rvalue:
+  pub proc jit_new_union_constructor_loc = (JIT_Context ctxt, JIT_Location location,
+                                            JIT_Type type, JIT_Field field,
+                                            JIT_Rvalue value) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_union_constructor(jit_context of ctxt,
                                                           jit_location of location,
@@ -781,16 +831,24 @@ def
                                                           jit_rvalue of value);
      res);
 
+  pub proc jit_new_union_constructor = (JIT_Context ctxt, JIT_Type type,
+                                        JIT_Field field, JIT_Rvalue value) JIT_Rvalue:
+    jit_new_union_constructor_loc(ctxt, no_location, type, field, value);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a constructor for an array as an rvalue. }
-  pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Location location,
-                                        JIT_Type type, []JIT_Rvalue values) JIT_Rvalue:
+  pub proc jit_new_array_constructor_loc = (JIT_Context ctxt, JIT_Location location,
+                                            JIT_Type type, []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_array_constructor(jit_context of ctxt,
                                                           jit_location of location,
                                                           jit_type of type,
                                                           jit_rvalue of values);
      res);
+
+  pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Type type,
+                                        []JIT_Rvalue values) JIT_Rvalue:
+    jit_new_array_constructor_loc(ctxt, no_location, type, values);
 
   { Set the initial value of a global using an rvalue. }
   pub proc global_set_initializer_rvalue = (JIT_Lvalue global, JIT_Rvalue rvalue) JIT_Lvalue:
@@ -890,8 +948,8 @@ def
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an rvalue for a unary operation. }
-  pub proc jit_new_unary_op = (JIT_Context ctxt, JIT_Location location, Unary_Op unary_op,
-                               JIT_Type result_type, JIT_Rvalue_Variant expr) JIT_Rvalue:
+  pub proc jit_new_unary_op_loc = (JIT_Context ctxt, JIT_Location location, Unary_Op unary_op,
+                                   JIT_Type result_type, JIT_Rvalue_Variant expr) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_unary_op(jit_context of ctxt,
                                                  jit_location of location,
@@ -900,11 +958,15 @@ def
                                                  jit_rvalue of as_rvalue(expr));
      res);
 
+  pub proc jit_new_unary_op = (JIT_Context ctxt, Unary_Op unary_op, JIT_Type result_type,
+                               JIT_Rvalue_Variant expr) JIT_Rvalue:
+    jit_new_unary_op_loc(ctxt, no_location, unary_op, result_type, expr);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an rvalue for a binary operation. }
-  pub proc jit_new_binary_op = (JIT_Context ctxt, JIT_Location location,
-                                Binary_Op binary_op, JIT_Type result_type,
-                                JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
+  pub proc jit_new_binary_op_loc = (JIT_Context ctxt, JIT_Location location,
+                                    Binary_Op binary_op, JIT_Type result_type,
+                                    JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_binary_op(jit_context of ctxt,
                                                   jit_location of location,
@@ -914,10 +976,14 @@ def
                                                   jit_rvalue of as_rvalue(b));
      res);
 
+  pub proc jit_new_binary_op = (JIT_Context ctxt, Binary_Op binary_op, JIT_Type result_type,
+                                    JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
+    jit_new_binary_op_loc(ctxt, no_location, binary_op, result_type, a, b);
+
   { Create an rvalue for a comparison. }
-  pub proc jit_new_comparison = (JIT_Context ctxt, JIT_Location location,
-                                 Comparison comparison_op, JIT_Rvalue_Variant a,
-                                 JIT_Rvalue_Variant b) JIT_Rvalue:
+  pub proc jit_new_comparison_loc = (JIT_Context ctxt, JIT_Location location,
+                                     Comparison comparison_op, JIT_Rvalue_Variant a,
+                                     JIT_Rvalue_Variant b) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_comparison(jit_context of ctxt,
                                                    jit_location of location,
@@ -926,9 +992,13 @@ def
                                                    jit_rvalue of as_rvalue(b));
      res);
 
+  pub proc jit_new_comparison = (JIT_Context ctxt, Comparison comparison_op,
+                                 JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
+    jit_new_comparison_loc(ctxt, no_location, comparison_op, a, b);
+
   { Call of a specific function. }
-  pub proc jit_new_call = (JIT_Context ctxt, JIT_Location location,
-                           JIT_Function function, []JIT_Rvalue args) JIT_Rvalue:
+  pub proc jit_new_call_loc = (JIT_Context ctxt, JIT_Location location,
+                               JIT_Function function, []JIT_Rvalue args) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_call(jit_context of ctxt,
                                              jit_location of location,
@@ -936,9 +1006,12 @@ def
                                              jit_rvalue of args);
      res);
 
+  pub proc jit_new_call = (JIT_Context ctxt, JIT_Function function, []JIT_Rvalue args) JIT_Rvalue:
+    jit_new_call_loc(ctxt, no_location, function, args);
+
   { Call through a function pointer. }
-  pub proc jit_new_call_through_ptr = (JIT_Context ctxt, JIT_Location location,
-                                       JIT_Rvalue fn_ptr, []JIT_Rvalue args) JIT_Rvalue:
+  pub proc jit_new_call_through_ptr_loc = (JIT_Context ctxt, JIT_Location location,
+                                           JIT_Rvalue fn_ptr, []JIT_Rvalue args) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_call_through_ptr(jit_context of ctxt,
                                                          jit_location of location,
@@ -946,10 +1019,14 @@ def
                                                          jit_rvalue of args);
      res);
 
+  pub proc jit_new_call_through_ptr = (JIT_Context ctxt, JIT_Rvalue fn_ptr,
+                                       []JIT_Rvalue args) JIT_Rvalue:
+    jit_new_call_through_ptr_loc(ctxt, no_location, fn_ptr, args);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Type-coercion. }
-  pub proc jit_new_cast = (JIT_Context ctxt, JIT_Location location,
-                           JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+  pub proc jit_new_cast_loc = (JIT_Context ctxt, JIT_Location location,
+                               JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_cast(jit_context of ctxt,
                                              jit_location of location,
@@ -957,16 +1034,22 @@ def
                                              jit_type of type);
      res);
 
+  pub proc jit_new_cast = (JIT_Context ctxt, JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+    jit_new_cast_loc(ctxt, no_location, expr, type);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Reinterpret a value as another type. }
-  pub proc jit_new_bitcast = (JIT_Context ctxt, JIT_Location location,
-                              JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+  pub proc jit_new_bitcast_loc = (JIT_Context ctxt, JIT_Location location,
+                                  JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_bitcast(jit_context of ctxt,
                                                 jit_location of location,
                                                 jit_rvalue of as_rvalue(expr),
                                                 jit_type of type);
      res);
+
+  pub proc jit_new_bitcast = (JIT_Context ctxt, JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+    jit_new_bitcast_loc(ctxt, no_location, expr, type);
 
   { Set the alignment of a variable. }
   pub proc lvalue_set_alignment = (JIT_Lvalue_Variant decl, int alignment) void:
@@ -978,8 +1061,8 @@ def
     c_lvalue_get_alignment(jit_lvalue of as_lvalue(decl));
 
   { Create an lvalue for array access. }
-  pub proc jit_new_array_access = (JIT_Context ctxt, JIT_Location location,
-                                   JIT_Rvalue_Variant ptr, JIT_Rvalue_Variant index) JIT_Lvalue:
+  pub proc jit_new_array_access_loc = (JIT_Context ctxt, JIT_Location location,
+                                       JIT_Rvalue_Variant ptr, JIT_Rvalue_Variant index) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_context_new_array_access(jit_context of ctxt,
                                                      jit_location of location,
@@ -987,10 +1070,14 @@ def
                                                      jit_rvalue of as_rvalue(index));
      res);
 
+  pub proc jit_new_array_access = (JIT_Context ctxt, JIT_Rvalue_Variant ptr,
+                                   JIT_Rvalue_Variant index) JIT_Lvalue:
+    jit_new_array_access_loc(ctxt, no_location, ptr, index);
+
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Given a vector rvalue, cast it to the type ``type``, doing an element-wise conversion. }
-  pub proc jit_convert_vector = (JIT_Context ctxt, JIT_Location location,
-                                 JIT_Rvalue_Variant vector, JIT_Type type) JIT_Rvalue:
+  pub proc jit_convert_vector_loc = (JIT_Context ctxt, JIT_Location location,
+                                     JIT_Rvalue_Variant vector, JIT_Type type) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_convert_vector(jit_context of ctxt,
                                                    jit_location of location,
@@ -998,10 +1085,14 @@ def
                                                    jit_type of type);
      res);
 
+  pub proc jit_convert_vector = (JIT_Context ctxt, JIT_Rvalue_Variant vector,
+                                 JIT_Type type) JIT_Rvalue:
+    jit_convert_vector_loc(ctxt, no_location, vector, type);
+
   { Build a permutation vector rvalue from an 3 arrays of elements. }
-  pub proc jit_new_rvalue_vector_perm = (JIT_Context ctxt, JIT_Location location,
-                                         JIT_Rvalue_Variant a, JIT_Rvalue_Variant b,
-                                         JIT_Rvalue_Variant mask) JIT_Rvalue:
+  pub proc jit_new_rvalue_vector_perm_loc = (JIT_Context ctxt, JIT_Location location,
+                                             JIT_Rvalue_Variant a, JIT_Rvalue_Variant b,
+                                             JIT_Rvalue_Variant mask) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_rvalue_vector_perm(jit_context of ctxt,
                                                            jit_location of location,
@@ -1010,9 +1101,14 @@ def
                                                            jit_rvalue of as_rvalue(mask));
      res);
 
+  pub proc jit_new_rvalue_vector_perm = (JIT_Context ctxt, JIT_Rvalue_Variant a,
+                                         JIT_Rvalue_Variant b, JIT_Rvalue_Variant mask) JIT_Rvalue:
+    jit_new_rvalue_vector_perm_loc(ctxt, no_location, a, b, mask);
+
   { Get the element at "index" in "vector". }
-  pub proc jit_new_vector_access = (JIT_Context ctxt, JIT_Location location,
-                                    JIT_Rvalue_Variant vector, JIT_Rvalue_Variant index) JIT_Lvalue:
+  pub proc jit_new_vector_access_loc = (JIT_Context ctxt, JIT_Location location,
+                                        JIT_Rvalue_Variant vector,
+                                        JIT_Rvalue_Variant index) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_context_new_vector_access(jit_context of ctxt,
                                                       jit_location of location,
@@ -1020,46 +1116,65 @@ def
                                                       jit_rvalue of as_rvalue(index));
      res);
 
+  pub proc jit_new_vector_access = (JIT_Context ctxt, JIT_Rvalue_Variant vector,
+                                    JIT_Rvalue_Variant index) JIT_Lvalue:
+    jit_new_vector_access_loc(ctxt, no_location, vector, index);
+
   { Accessing a field of an lvalue of struct type, analogous to: (EXPR).field = ...;. }
-  pub proc lvalue_access_field = (JIT_Lvalue_Variant expr, JIT_Location location,
-                                  JIT_Field field) JIT_Lvalue:
+  pub proc lvalue_access_field_loc = (JIT_Lvalue_Variant expr, JIT_Location location,
+                                      JIT_Field field) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_lvalue_access_field(jit_lvalue of as_lvalue(expr),
                                                 jit_location of location,
                                                 jit_field of field);
      res);
 
+  pub proc lvalue_access_field = (JIT_Lvalue_Variant expr, JIT_Field field) JIT_Lvalue:
+    lvalue_access_field_loc(expr, no_location, field);
+
   { Accessing a field of an rvalue of struct type, analogous to: (EXPR).field. }
-  pub proc rvalue_access_field = (JIT_Rvalue_Variant expr, JIT_Location location,
-                                  JIT_Field field) JIT_Rvalue:
+  pub proc rvalue_access_field_loc = (JIT_Rvalue_Variant expr, JIT_Location location,
+                                      JIT_Field field) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_rvalue_access_field(jit_rvalue of as_rvalue(expr),
                                                 jit_location of location,
                                                 jit_field of field);
      res);
 
+  pub proc rvalue_access_field = (JIT_Rvalue_Variant expr, JIT_Field field) JIT_Rvalue:
+    rvalue_access_field_loc(expr, no_location, field);
+
   { Accessing a field of an rvalue of pointer type, analogous to: (*EXPR).FIELD. }
-  pub proc rvalue_dereference_field = (JIT_Rvalue_Variant expr, JIT_Location location,
-                                       JIT_Field field) JIT_Lvalue:
+  pub proc rvalue_dereference_field_loc = (JIT_Rvalue_Variant expr, JIT_Location location,
+                                           JIT_Field field) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_rvalue_dereference_field(jit_rvalue of as_rvalue(expr),
                                                      jit_location of location,
                                                      jit_field of field);
      res);
 
+  pub proc rvalue_dereference_field = (JIT_Rvalue_Variant expr, JIT_Field field) JIT_Lvalue:
+    rvalue_dereference_field_loc(expr, no_location, field);
+
   { Dereferencing a pointer; analogous to: (EXPR). }
-  pub proc rvalue_dereference = (JIT_Rvalue_Variant expr, JIT_Location location) JIT_Lvalue:
+  pub proc rvalue_dereference_loc = (JIT_Rvalue_Variant expr, JIT_Location location) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_rvalue_dereference(jit_rvalue of as_rvalue(expr),
                                                jit_location of location);
      res);
 
+  pub proc rvalue_dereference = (JIT_Rvalue_Variant expr) JIT_Lvalue:
+    rvalue_dereference_loc(expr, no_location);
+
   { Taking the address of an lvalue; analogous to: &(EXPR). }
-  pub proc lvalue_get_address = (JIT_Lvalue_Variant expr, JIT_Location location) JIT_Rvalue:
+  pub proc lvalue_get_address_loc = (JIT_Lvalue_Variant expr, JIT_Location location) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_lvalue_get_address(jit_lvalue of as_lvalue(expr),
                                                jit_location of location);
      res);
+
+  pub proc lvalue_get_address = (JIT_Lvalue_Variant expr) JIT_Rvalue:
+    lvalue_get_address_loc(expr, no_location);
 
   { Set the thread-local storage model of a global variable. }
   pub proc lvalue_set_tls_model = (JIT_Lvalue lvalue, Tls_Model model) void:
@@ -1076,82 +1191,116 @@ def
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a local variable within a function. }
-  pub proc function_new_local = (JIT_Function function, JIT_Location location,
-                                 JIT_Type type, string name) JIT_Lvalue:
+  pub proc function_new_local_loc = (JIT_Function function, JIT_Location location,
+                                     JIT_Type type, string name) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_function_new_local(jit_function of function,
                                                jit_location of location,
                                                jit_type of type, name);
      res);
 
+  pub proc function_new_local = (JIT_Function function, JIT_Type type, string name) JIT_Lvalue:
+    function_new_local_loc(function, no_location, type, name);
+
   { Create a temporary local variable. }
-  pub proc function_new_temp = (JIT_Function function, JIT_Location location,
-                                JIT_Type type) JIT_Lvalue:
+  pub proc function_new_temp_loc = (JIT_Function function, JIT_Location location,
+                                    JIT_Type type) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_function_new_temp(jit_function of function,
                                               jit_location of location,
                                               jit_type of type);
      res);
 
+  pub proc function_new_temp = (JIT_Function function, JIT_Type type) JIT_Lvalue:
+    function_new_temp_loc(function, no_location, type);
+
   { Add evaluation of an rvalue, discarding the result analogous to: (void)EXPR;. }
-  pub proc block_add_eval = (JIT_Block block, JIT_Location location,
-                             JIT_Rvalue_Variant expr) void:
+  pub proc block_add_eval_loc = (JIT_Block block, JIT_Location location,
+                                 JIT_Rvalue_Variant expr) void:
     c_block_add_eval(jit_block of block,
                      jit_location of location,
                      jit_rvalue of as_rvalue(expr));
 
+  pub proc block_add_eval = (JIT_Block block, JIT_Rvalue_Variant expr) void:
+    block_add_eval_loc(block, no_location, expr);
+
   { Add evaluation of an rvalue, assigning the result to the given lvalue. }
-  pub proc block_add_assignment = (JIT_Block block, JIT_Location location,
-                                   JIT_Lvalue_Variant lhs, JIT_Rvalue_Variant rhs) void:
+  pub proc block_add_assignment_loc = (JIT_Block block, JIT_Location location,
+                                       JIT_Lvalue_Variant lhs, JIT_Rvalue_Variant rhs) void:
     c_block_add_assignment(jit_block of block,
                            jit_location of location,
                            jit_lvalue of as_lvalue(lhs),
                            jit_rvalue of as_rvalue(rhs));
 
+  pub proc block_add_assignment = (JIT_Block block, JIT_Lvalue_Variant lhs,
+                                   JIT_Rvalue_Variant rhs) void:
+    block_add_assignment_loc(block, no_location, lhs, rhs);
+
   { Add evaluation of an rvalue, using the result to modify an lvalue. }
-  pub proc block_add_assignment_op = (JIT_Block block, JIT_Location location,
-                                      JIT_Lvalue_Variant lhs, Binary_Op binary_op,
-                                      JIT_Rvalue_Variant rhs) void:
+  pub proc block_add_assignment_op_loc = (JIT_Block block, JIT_Location location,
+                                          JIT_Lvalue_Variant lhs, Binary_Op binary_op,
+                                          JIT_Rvalue_Variant rhs) void:
     c_block_add_assignment_op(jit_block of block,
                               jit_location of location,
                               jit_lvalue of as_lvalue(lhs),
                               binary_op of binary_op,
                               jit_rvalue of as_rvalue(rhs));
 
+  pub proc block_add_assignment_op = (JIT_Block block, JIT_Lvalue_Variant lhs,
+                                      Binary_Op binary_op, JIT_Rvalue_Variant rhs) void:
+    block_add_assignment_op_loc(block, no_location, lhs, binary_op, rhs);
+
   { Add a no-op textual comment to the internal representation of the code. }
-  pub proc block_add_comment = (JIT_Block block, JIT_Location location, string text) void:
+  pub proc block_add_comment_loc = (JIT_Block block, JIT_Location location, string text) void:
     c_block_add_comment(jit_block of block,
                         jit_location of location,
                         text);
 
+  pub proc block_add_comment = (JIT_Block block, string text) void:
+    block_add_comment_loc(block, no_location, text);
+
   { Terminate a block by adding evaluation of an rvalue, branching on the result to the
     appropriate successor block. }
-  pub proc block_end_with_conditional = (JIT_Block block, JIT_Location location,
-                                         JIT_Rvalue_Variant boolval, JIT_Block on_true,
-                                         JIT_Block on_false) void:
+  pub proc block_end_with_conditional_loc = (JIT_Block block, JIT_Location location,
+                                             JIT_Rvalue_Variant boolval, JIT_Block on_true,
+                                             JIT_Block on_false) void:
     c_block_end_with_conditional(jit_block of block,
                                  jit_location of location,
                                  jit_rvalue of as_rvalue(boolval),
                                  jit_block of on_true,
                                  jit_block of on_false);
 
+  pub proc block_end_with_conditional = (JIT_Block block, JIT_Rvalue_Variant boolval,
+                                         JIT_Block on_true, JIT_Block on_false) void:
+    block_end_with_conditional_loc(block, no_location, boolval, on_true, on_false);
+
   { Terminate a block by adding a jump to the given target block. }
-  pub proc block_end_with_jump = (JIT_Block block, JIT_Location location, JIT_Block target) void:
+  pub proc block_end_with_jump_loc = (JIT_Block block, JIT_Location location,
+                                      JIT_Block target) void:
     c_block_end_with_jump(jit_block of block,
                           jit_location of location,
                           jit_block of target);
 
+  pub proc block_end_with_jump = (JIT_Block block, JIT_Block target) void:
+    block_end_with_jump_loc(block, no_location, target);
+
   { Terminate a block by adding evaluation of an rvalue, returning the value. }
-  pub proc block_end_with_return = (JIT_Block block, JIT_Location location,
-                                    JIT_Rvalue_Variant expr) void:
+  pub proc block_end_with_return_loc = (JIT_Block block, JIT_Location location,
+                                        JIT_Rvalue_Variant expr) void:
     c_block_end_with_return(jit_block of block,
                             jit_location of location,
                             jit_rvalue of as_rvalue(expr));
 
+  pub proc block_end_with_return = (JIT_Block block, JIT_Rvalue_Variant expr) void:
+    block_end_with_return_loc(block, no_location, expr);
+
   { Terminate a block by adding a valueless return, for functions with `void` return type. }
-  pub proc block_end_with_void_return = (JIT_Block block, JIT_Location location) void:
+  pub proc block_end_with_void_return_loc = (JIT_Block block, JIT_Location location) void:
     c_block_end_with_void_return(jit_block of block,
                                  jit_location of location);
+
+  pub proc block_end_with_void_return = (JIT_Block block) void:
+    block_end_with_void_return_loc(block, no_location);
 
   { Create a new gcc_jit_case instance for use in a switch statement. }
   pub proc jit_new_case = (JIT_Context ctxt, JIT_Rvalue min_value,
@@ -1164,14 +1313,18 @@ def
      res);
 
   { Terminate a block by adding evaluation of an rvalue, then performing a multiway branch. }
-  pub proc block_end_with_switch = (JIT_Block block, JIT_Location location,
-                                    JIT_Rvalue_Variant expr, JIT_Block default_block,
-                                    []JIT_Case cases) void:
+  pub proc block_end_with_switch_loc = (JIT_Block block, JIT_Location location,
+                                        JIT_Rvalue_Variant expr, JIT_Block default_block,
+                                        []JIT_Case cases) void:
     c_block_end_with_switch(jit_block of block,
                             jit_location of location,
                             jit_rvalue of as_rvalue(expr),
                             jit_block of default_block,
                             jit_case of cases);
+
+  pub proc block_end_with_switch = (JIT_Block block, JIT_Rvalue_Variant expr,
+                                    JIT_Block default_block, []JIT_Case cases) void:
+    block_end_with_switch_loc(block, no_location, expr, default_block, cases);
 
   { Given an existing JIT context, create a child context. }
   pub proc jit_new_child_context = (JIT_Context ctxt) JIT_Context:
@@ -1242,21 +1395,28 @@ def
      res);
 
   { Get the address of a function as an rvalue, of function pointer type. }
-  pub proc function_get_address = (JIT_Function function, JIT_Location location) JIT_Rvalue:
+  pub proc function_get_address_loc = (JIT_Function function, JIT_Location location) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_function_get_address(jit_function of function,
                                                  jit_location of location);
      res);
 
+  pub proc function_get_address = (JIT_Function function) JIT_Rvalue:
+    function_get_address_loc(function, no_location);
+
   { Build a vector rvalue from an array of elements. }
-  pub proc jit_new_rvalue_from_vector = (JIT_Context ctxt, JIT_Location location,
-                                         JIT_Type type, []JIT_Rvalue elements) JIT_Rvalue:
+  pub proc jit_new_rvalue_from_vector_loc = (JIT_Context ctxt, JIT_Location location,
+                                             JIT_Type type, []JIT_Rvalue elements) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_rvalue_from_vector(jit_context of ctxt,
                                                            jit_location of location,
                                                            jit_type of type,
                                                            jit_rvalue of elements);
      res);
+
+  pub proc jit_new_rvalue_from_vector = (JIT_Context ctxt, JIT_Type type,
+                                         []JIT_Rvalue elements) JIT_Rvalue:
+    jit_new_rvalue_from_vector_loc(ctxt, no_location, type, elements);
 
   { Functions to retrieve libgccjit version. }
   pub proc jit_version_major = int:
@@ -1271,19 +1431,22 @@ def
      c_version_patchlevel;
 
   { Create a gcc_jit_extended_asm for an extended asm statement with no control flow. }
-  pub proc block_add_extended_asm = (JIT_Block block, JIT_Location location,
-                                     string asm_template) JIT_Extended_Asm:
+  pub proc block_add_extended_asm_loc = (JIT_Block block, JIT_Location location,
+                                         string asm_template) JIT_Extended_Asm:
     (JIT_Extended_Asm res;
      jit_extended_asm of res := c_block_add_extended_asm(jit_block of block,
                                                          jit_location of location,
                                                          asm_template);
      res);
 
+  pub proc block_add_extended_asm = (JIT_Block block, string asm_template) JIT_Extended_Asm:
+    block_add_extended_asm_loc(block, no_location, asm_template);
+
   { Create a gcc_jit_extended_asm for an extended asm statement that may perform jumps,
     and use it to terminate the given block. }
-  pub proc block_end_with_extended_asm_goto = (JIT_Block block, JIT_Location location,
-                                               string asm_template, []JIT_Block goto_blocks,
-                                               JIT_Block fallthrough_block) JIT_Extended_Asm:
+  pub proc block_end_with_extended_asm_goto_loc = (JIT_Block block, JIT_Location location,
+                                                   string asm_template, []JIT_Block goto_blocks,
+                                                   JIT_Block fallthrough_block) JIT_Extended_Asm:
     (JIT_Extended_Asm res;
      jit_extended_asm of res := c_block_end_with_extended_asm_goto(jit_block of block,
                                                                    jit_location of location,
@@ -1291,6 +1454,12 @@ def
                                                                    jit_block of goto_blocks,
                                                                    jit_block of fallthrough_block);
      res);
+
+  pub proc block_end_with_extended_asm_goto = (JIT_Block block, string asm_template,
+                                               []JIT_Block goto_blocks,
+                                               JIT_Block fallthrough_block) JIT_Extended_Asm:
+    block_end_with_extended_asm_goto_loc(block, no_location, asm_template,
+                                         goto_blocks, fallthrough_block);
 
   { Set whether the gcc_jit_extended_asm has side-effects,
     equivalent to the `volatile` qualifier in C's extended asm syntax. }
@@ -1321,9 +1490,13 @@ def
 
   { Add "asm_stmts", a set of top-level asm statements,
     analogous to those created by GCC's basic asm syntax in C at file scope. }
-  pub proc jit_add_top_level_asm = (JIT_Context ctxt, JIT_Location location, string asm_stmts) void:
+  pub proc jit_add_top_level_asm_loc = (JIT_Context ctxt, JIT_Location location,
+                                        string asm_stmts) void:
     c_context_add_top_level_asm(jit_context of ctxt,
                                 jit_location of location, asm_stmts);
+
+  pub proc jit_add_top_level_asm = (JIT_Context ctxt, string asm_stmts) void:
+    jit_add_top_level_asm_loc(ctxt, no_location, asm_stmts);
 
   { Get the return type of a function. }
   pub proc function_get_return_type = (JIT_Function function) JIT_Type:
