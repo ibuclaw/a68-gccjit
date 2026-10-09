@@ -37,7 +37,8 @@ def
            JIT_Extended_Asm  = struct (GccJitHandle jit_extended_asm),
            JIT_Timer         = struct (GccJitHandle jit_timer);
 
-  {{pub}} mode JIT_Object    = struct (GccJitHandle jit_object),
+  { An object created within a context. }
+  mode JIT_Object = struct (GccJitHandle jit_object),
 
   { The class hierachy looks like this:
      +- gcc_jit_object
@@ -63,27 +64,27 @@ def
   mode JIT_LValue_Variant = union (JIT_Lvalue, JIT_Param);
 
   { Options taking string values. }
-  {{pub}} mode Str_Option = struct (int str_option);
-  {{pub}} Str_Option option_progname,
-                     option_special_chars_in_func_names;
+  mode Str_Option = struct (int str_option);
+  Str_Option option_progname,
+             option_special_chars_in_func_names;
   str_option of option_progname := 0;
   str_option of option_special_chars_in_func_names := 1;
 
   { Options taking int values. }
-  {{pub}} mode Int_Option = struct (int int_option);
-  {{pub}} Int_Option option_optimization_level;
+  mode Int_Option = struct (int int_option);
+  Int_Option option_optimization_level;
   int_option of option_optimization_level := 0;
 
   { Options taking boolean values. }
-  {{pub}} mode Bool_Option = struct (int bool_option);
-  {{pub}} Bool_Option option_debuginfo,
-                      option_dump_initial_tree,
-                      option_dump_initial_gimple,
-                      option_dump_generated_code,
-                      option_dump_summary,
-                      option_dump_everything,
-                      option_selfcheck_gc,
-                      option_keep_intermediates;
+  mode Bool_Option = struct (int bool_option);
+  Bool_Option option_debuginfo,
+              option_dump_initial_tree,
+              option_dump_initial_gimple,
+              option_dump_generated_code,
+              option_dump_summary,
+              option_dump_everything,
+              option_selfcheck_gc,
+              option_keep_intermediates;
   bool_option of option_debuginfo := 0;
   bool_option of option_dump_initial_tree := 1;
   bool_option of option_dump_initial_gimple := 2;
