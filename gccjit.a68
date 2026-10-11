@@ -561,7 +561,7 @@ def
                        jit_type of b);
 
   { Given type `T`, get its size. }
-  pub proc type_get_size = (JIT_Type type) long long int:
+  pub proc type_get_size = (JIT_Type type) word int:
     c_type_get_size(jit_type of type);
 
   { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
@@ -665,13 +665,13 @@ def
     struct_set_fields_loc(struct_type, no_location, fields);
 
   { Get a field by index. }
-  pub proc struct_get_field = (JIT_Struct struct_type, long long int index) JIT_Field:
+  pub proc struct_get_field = (JIT_Struct struct_type, word int index) JIT_Field:
     (JIT_Field res;
      jit_field of res := c_struct_get_field(jit_struct of struct_type, index);
      res);
 
   { Get the number of fields. }
-  pub proc struct_get_field_count = (JIT_Struct struct_type) long long int:
+  pub proc struct_get_field_count = (JIT_Struct struct_type) word int:
     c_struct_get_field_count(jit_struct of struct_type);
 
   { Unions work similarly to structs. }
@@ -863,7 +863,7 @@ def
 
   { Set an initial value for an integral array global. }
   pub proc global_set_initializer = (JIT_Lvalue global, FIXME_VoidPtr blob,
-                                     long long int size) JIT_Lvalue:
+                                     word int size) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_global_set_initializer(jit_lvalue of global, blob, size);
      res);
@@ -1379,14 +1379,14 @@ def
 
   { Given type `T`, get type: `T __attribute__ ((aligned (ALIGNMENT_IN_BYTES)))`
     The alignment must be a power of two. }
-  pub proc type_get_aligned = (JIT_Type type, long long int alignment) JIT_Type:
+  pub proc type_get_aligned = (JIT_Type type, word int alignment) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_type_get_aligned(jit_type of type, alignment);
      res);
 
   { Given type `T`, get type: `T __attribute__ ((vector_size (sizeof(T) * num_units))`
     "type" must be integral/floating point; "num_units" must be a power of two. }
-  pub proc type_get_vector = (JIT_Type type, long long int num_units) JIT_Type:
+  pub proc type_get_vector = (JIT_Type type, word int num_units) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_type_get_vector(jit_type of type, num_units);
      res);
@@ -1502,7 +1502,7 @@ def
      res);
 
   { Get the number of params of a function. }
-  pub proc function_get_param_count = (JIT_Function function) long long int:
+  pub proc function_get_param_count = (JIT_Function function) word int:
     c_function_get_param_count(jit_function of function);
 
   { Get the element type of an array type or NULL if it's not an array. }
@@ -1528,12 +1528,12 @@ def
      res);
 
   { Given a function type, return its number of parameters. }
-  pub proc function_type_get_param_count = (JIT_Function_Type function_type) long long int:
+  pub proc function_type_get_param_count = (JIT_Function_Type function_type) word int:
     c_function_type_get_param_count(jit_function_type of function_type);
 
   { Given a function type, return the type of the specified parameter. }
   pub proc function_type_get_param_type = (JIT_Function_Type function_type,
-                                           long long int index) JIT_Type:
+                                           word int index) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_function_type_get_param_type(jit_function_type of function_type, index);
      res);
@@ -1565,7 +1565,7 @@ def
      res);
 
   { Given a vector type, return the number of units it contains. }
-  pub proc vector_type_get_num_units = (JIT_Vector_Type vector_type) long long int:
+  pub proc vector_type_get_num_units = (JIT_Vector_Type vector_type) word int:
     c_vector_type_get_num_units(jit_vector_type of vector_type);
 
   { Given a vector type, return the type of its elements. }
@@ -1622,7 +1622,7 @@ def
   { FIXME: Use []int values? }
   { Add an integer array attribute to a function. }
   pub proc function_add_integer_array_attribute = (JIT_Function function, Fn_Attribute attribute,
-                                                   ref int values, long long int length) void:
+                                                   ref int values, word int length) void:
     c_function_add_integer_array_attribute(jit_function of function,
                                            fn_attribute of attribute,
                                            values, length);
@@ -1705,7 +1705,7 @@ def
   proc (GccJitHandle) GccJitHandle c_type_get_volatile = nest C "gcc_jit_type_get_volatile";
   proc (GccJitHandle) GccJitHandle c_type_get_restrict = nest C "gcc_jit_type_get_restrict";
   proc (GccJitHandle, GccJitHandle) int c_compatible_types = nest C "gcc_jit_compatible_types";
-  proc (GccJitHandle) long long int c_type_get_size = nest C "gcc_jit_type_get_size";
+  proc (GccJitHandle) word int c_type_get_size = nest C "gcc_jit_type_get_size";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, int) GccJitHandle c_context_new_array_type = nest C "gcc_jit_context_new_array_type";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, long long int) GccJitHandle c_context_new_array_type_u64 = nest C "gcc_jit_context_new_array_type_u64";
 
@@ -1716,8 +1716,8 @@ def
   proc (GccJitHandle, GccJitHandle, string) GccJitHandle c_context_new_opaque_struct = nest C "jit68_context_new_opaque_struct";
   proc (GccJitHandle) GccJitHandle c_struct_as_type = nest C "gcc_jit_struct_as_type";
   proc (GccJitHandle, GccJitHandle, []GccJitHandle) void c_struct_set_fields = nest C "jit68_struct_set_fields";
-  proc (GccJitHandle, long long int) GccJitHandle c_struct_get_field = nest C "gcc_jit_struct_get_field";
-  proc (GccJitHandle) long long int c_struct_get_field_count = nest C "gcc_jit_struct_get_field_count";
+  proc (GccJitHandle, word int) GccJitHandle c_struct_get_field = nest C "gcc_jit_struct_get_field";
+  proc (GccJitHandle) word int c_struct_get_field_count = nest C "gcc_jit_struct_get_field_count";
   proc (GccJitHandle, GccJitHandle, string, []GccJitHandle) GccJitHandle c_context_new_union_type = nest C "jit68_context_new_union_type";
 
   proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle, bool) GccJitHandle c_context_new_function_ptr_type = nest C "jit68_context_new_function_ptr_type";
@@ -1743,7 +1743,7 @@ def
   proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_array_constructor = nest C "jit68_context_new_array_constructor";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_global_set_initializer_rvalue = nest C "gcc_jit_global_set_initializer_rvalue";
   proc (GccJitHandle, string) GccJitHandle c_context_get_target_builtin_function = nest C "jit68_context_get_target_builtin_function";
-  proc (GccJitHandle, FIXME_VoidPtr, long long int) GccJitHandle c_global_set_initializer = nest C "gcc_jit_global_set_initializer";
+  proc (GccJitHandle, FIXME_VoidPtr, word int) GccJitHandle c_global_set_initializer = nest C "gcc_jit_global_set_initializer";
   proc (GccJitHandle) void c_global_set_readonly = nest C "gcc_jit_global_set_readonly";
 
   proc (GccJitHandle) GccJitHandle c_lvalue_as_object = nest C "gcc_jit_lvalue_as_object";
@@ -1822,8 +1822,8 @@ def
   proc (GccJitHandle, int) void c_timer_print = nest C "jit68_timer_print";
 
   proc (GccJitHandle, bool) void c_rvalue_set_bool_require_tail_call = nest C "gcc_jit_rvalue_set_bool_require_tail_call";
-  proc (GccJitHandle, long long int) GccJitHandle c_type_get_aligned = nest C "gcc_jit_type_get_aligned";
-  proc (GccJitHandle, long long int) GccJitHandle c_type_get_vector = nest C "gcc_jit_type_get_vector";
+  proc (GccJitHandle, word int) GccJitHandle c_type_get_aligned = nest C "gcc_jit_type_get_aligned";
+  proc (GccJitHandle, word int) GccJitHandle c_type_get_vector = nest C "gcc_jit_type_get_vector";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_function_get_address = nest C "gcc_jit_function_get_address";
   proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_rvalue_from_vector = nest C "jit68_context_new_rvalue_from_vector";
 
@@ -1842,19 +1842,19 @@ def
   proc (GccJitHandle, GccJitHandle, string) void c_context_add_top_level_asm = nest C "jit68_context_add_top_level_asm";
 
   proc (GccJitHandle) GccJitHandle c_function_get_return_type = nest C "gcc_jit_function_get_return_type";
-  proc (GccJitHandle) long long int c_function_get_param_count = nest C "gcc_jit_function_get_param_count";
+  proc (GccJitHandle) word int c_function_get_param_count = nest C "gcc_jit_function_get_param_count";
   proc (GccJitHandle) GccJitHandle c_type_dyncast_array = nest C "gcc_jit_type_dyncast_array";
   proc (GccJitHandle) int c_type_is_bool = nest C "gcc_jit_type_is_bool";
   proc (GccJitHandle) GccJitHandle c_type_dyncast_function_ptr_type = nest C "gcc_jit_type_dyncast_function_ptr_type";
   proc (GccJitHandle) GccJitHandle c_function_type_get_return_type = nest C "gcc_jit_function_type_get_return_type";
-  proc (GccJitHandle) long long int c_function_type_get_param_count = nest C "gcc_jit_function_type_get_param_count";
-  proc (GccJitHandle, long long int) GccJitHandle c_function_type_get_param_type = nest C "gcc_jit_function_type_get_param_type";
+  proc (GccJitHandle) word int c_function_type_get_param_count = nest C "gcc_jit_function_type_get_param_count";
+  proc (GccJitHandle, word int) GccJitHandle c_function_type_get_param_type = nest C "gcc_jit_function_type_get_param_type";
   proc (GccJitHandle) int c_type_is_integral = nest C "gcc_jit_type_is_integral";
   proc (GccJitHandle) int c_type_is_floating_point = nest C "gcc_jit_type_is_floating_point";
   proc (GccJitHandle) GccJitHandle c_type_is_pointer = nest C "gcc_jit_type_is_pointer";
   proc (GccJitHandle) GccJitHandle c_type_dyncast_vector = nest C "gcc_jit_type_dyncast_vector";
   proc (GccJitHandle) GccJitHandle c_type_is_struct = nest C "gcc_jit_type_is_struct";
-  proc (GccJitHandle) long long int c_vector_type_get_num_units = nest C "gcc_jit_vector_type_get_num_units";
+  proc (GccJitHandle) word int c_vector_type_get_num_units = nest C "gcc_jit_vector_type_get_num_units";
   proc (GccJitHandle) GccJitHandle c_vector_type_get_element_type = nest C "gcc_jit_vector_type_get_element_type";
   proc (GccJitHandle) GccJitHandle c_type_unqualified = nest C "gcc_jit_type_unqualified";
 
@@ -1867,7 +1867,7 @@ def
   proc (GccJitHandle) string c_target_info_arch = nest C "gcc_jit_target_info_arch";
   proc (GccJitHandle, int) bool c_target_info_supports_target_dependent_type = nest C "gcc_jit_target_info_supports_target_dependent_type";
 
-  proc (GccJitHandle, int, ref int, long long int) void c_function_add_integer_array_attribute = nest C "gcc_jit_function_add_integer_array_attribute";
+  proc (GccJitHandle, int, ref int, word int) void c_function_add_integer_array_attribute = nest C "gcc_jit_function_add_integer_array_attribute";
 
   proc (GccJitHandle, int, string) void c_lvalue_add_string_attribute = nest C "jit68_lvalue_add_string_attribute";
 
