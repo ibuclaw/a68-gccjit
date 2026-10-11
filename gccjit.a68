@@ -1619,13 +1619,12 @@ def
     c_target_info_supports_target_dependent_type(jit_targetinfo of target_info,
                                                  ctype of type);
 
-  { FIXME: Use []int values? }
   { Add an integer array attribute to a function. }
   pub proc function_add_integer_array_attribute = (JIT_Function function, Fn_Attribute attribute,
-                                                   ref int values, word int length) void:
+                                                   []int values) void:
     c_function_add_integer_array_attribute(jit_function of function,
                                            fn_attribute of attribute,
-                                           values, length);
+                                           values);
 
   { Add a string attribute to a variable. }
   pub proc lvalue_add_string_attribute = (JIT_Lvalue_Variant decl, Var_Attribute attribute,
@@ -1867,7 +1866,7 @@ def
   proc (GccJitHandle) string c_target_info_arch = nest C "gcc_jit_target_info_arch";
   proc (GccJitHandle, int) bool c_target_info_supports_target_dependent_type = nest C "gcc_jit_target_info_supports_target_dependent_type";
 
-  proc (GccJitHandle, int, ref int, word int) void c_function_add_integer_array_attribute = nest C "gcc_jit_function_add_integer_array_attribute";
+  proc (GccJitHandle, int, []int) void c_function_add_integer_array_attribute = nest C "jit68_function_add_integer_array_attribute";
 
   proc (GccJitHandle, int, string) void c_lvalue_add_string_attribute = nest C "jit68_lvalue_add_string_attribute";
 

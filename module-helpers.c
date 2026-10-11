@@ -589,6 +589,16 @@ jit68_context_add_top_level_asm (gcc_jit_context *ctxt,
   free (asm_stmts);
 }
 
+
+void
+jit68_function_add_integer_array_attribute (gcc_jit_function *func,
+					    enum gcc_jit_fn_attribute attribute,
+					    int *value, size_t length,
+					    size_t /*stride*/)
+{
+  gcc_jit_function_add_integer_array_attribute (func, attribute, value, length);
+}
+
 void
 jit68_function_add_string_attribute (gcc_jit_function *func,
 				     enum gcc_jit_fn_attribute attribute,
