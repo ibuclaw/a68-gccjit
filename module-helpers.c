@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>  */
 #include <stdlib.h>
 #include <fcntl.h>
 
+/* Definitions from ga68.h.  */
+void *_libga68_malloc_leaf (size_t size);
+
 /* Convert from Algol68 UCS-4 `string` to C UTF8 `char *`.  */
 static char *
 ucs4_to_utf8 (const uint32_t *s, size_t n, size_t stride)
@@ -38,7 +41,8 @@ ucs4_to_utf8 (const uint32_t *s, size_t n, size_t stride)
 	length += 4;
     }
 
-  uint8_t *result = (uint8_t *) malloc (length * sizeof (uint8_t) + 1);
+  uint8_t *result =
+    (uint8_t *)_libga68_malloc_leaf (length * sizeof (uint8_t) + 1);
   size_t p = 0;
   for (size_t i = 0; i < n; i++)
     {
@@ -100,7 +104,6 @@ jit68_context_set_str_option (gcc_jit_context *ctxt,
 {
   char *value = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_set_str_option (ctxt, opt, value);
-  free (value);
 }
 
 void
@@ -109,7 +112,6 @@ jit68_context_add_command_line_option (gcc_jit_context *ctxt,
 {
   char *optname = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_add_command_line_option (ctxt, optname);
-  free (optname);
 }
 
 void
@@ -118,7 +120,6 @@ jit68_context_add_driver_option (gcc_jit_context *ctxt,
 {
   char *optname = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_add_driver_option (ctxt, optname);
-  free (optname);
 }
 
 void
@@ -128,7 +129,6 @@ jit68_context_compile_to_file (gcc_jit_context *ctxt,
 {
   char *output_path = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_compile_to_file (ctxt, kind, output_path);
-  free (output_path);
 }
 
 void
@@ -138,7 +138,6 @@ jit68_context_dump_to_file (gcc_jit_context *ctxt,
 {
   char *path = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_dump_to_file (ctxt, path, update_locations);
-  free (path);
 }
 
 void
@@ -154,9 +153,7 @@ jit68_result_get_code (gcc_jit_result *res,
 		       uint32_t *s, size_t len, size_t stride)
 {
   char *funcname = ucs4_to_utf8 (s, len, stride);
-  void *result = gcc_jit_result_get_code (res, funcname);
-  free (funcname);
-  return result;
+  return gcc_jit_result_get_code (res, funcname);
 }
 
 void *
@@ -164,9 +161,7 @@ jit68_result_get_global (gcc_jit_result *res,
 			 uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  void *result = gcc_jit_result_get_global (res, name);
-  free (name);
-  return result;
+  return gcc_jit_result_get_global (res, name);
 }
 
 gcc_jit_location *
@@ -175,10 +170,7 @@ jit68_context_new_location (gcc_jit_context *ctxt,
 			    int line, int column)
 {
   char *filename = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_location *result = gcc_jit_context_new_location (ctxt, filename,
-							   line, column);
-  free (filename);
-  return result;
+  return gcc_jit_context_new_location (ctxt, filename, line, column);
 }
 
 gcc_jit_field *
@@ -188,9 +180,7 @@ jit68_context_new_field (gcc_jit_context *ctxt,
 			 uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_field *result = gcc_jit_context_new_field (ctxt, loc, type, name);
-  free (name);
-  return result;
+  return gcc_jit_context_new_field (ctxt, loc, type, name);
 }
 
 gcc_jit_field *
@@ -201,10 +191,7 @@ jit68_context_new_bitfield (gcc_jit_context *ctxt,
 			    uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_field *result = gcc_jit_context_new_bitfield (ctxt, loc, type, width,
-							name);
-  free (name);
-  return result;
+  return gcc_jit_context_new_bitfield (ctxt, loc, type, width, name);
 }
 
 gcc_jit_struct *
@@ -215,10 +202,7 @@ jit68_context_new_struct_type (gcc_jit_context *ctxt,
 			       size_t num_fields, size_t /*stride*/)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_struct *result = gcc_jit_context_new_struct_type (ctxt, loc, name,
-							    num_fields, fields);
-  free (name);
-  return result;
+  return gcc_jit_context_new_struct_type (ctxt, loc, name, num_fields, fields);
 }
 
 gcc_jit_struct *
@@ -227,9 +211,7 @@ jit68_context_new_opaque_struct (gcc_jit_context *ctxt,
 				 uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_struct *result = gcc_jit_context_new_opaque_struct (ctxt, loc, name);
-  free (name);
-  return result;
+  return gcc_jit_context_new_opaque_struct (ctxt, loc, name);
 }
 
 void
@@ -249,10 +231,7 @@ jit68_context_new_union_type (gcc_jit_context *ctxt,
 			      size_t num_fields, size_t /*stride*/)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_type *result = gcc_jit_context_new_union_type (ctxt, loc, name,
-							 num_fields, fields);
-  free (name);
-  return result;
+  return gcc_jit_context_new_union_type (ctxt, loc, name, num_fields, fields);
 }
 
 gcc_jit_type *
@@ -275,9 +254,7 @@ jit68_context_new_param (gcc_jit_context *ctxt,
 			 uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_param *result = gcc_jit_context_new_param (ctxt, loc, type, name);
-  free (name);
-  return result;
+  return gcc_jit_context_new_param (ctxt, loc, type, name);
 }
 
 gcc_jit_function *
@@ -290,12 +267,8 @@ jit68_context_new_function (gcc_jit_context *ctxt, gcc_jit_location *loc,
 			    int is_variadic)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_function *result = gcc_jit_context_new_function (ctxt, loc, kind,
-							   return_type, name,
-							   num_params, params,
-							   is_variadic);
-  free (name);
-  return result;
+  return gcc_jit_context_new_function (ctxt, loc, kind, return_type, name,
+				       num_params, params, is_variadic);
 }
 
 gcc_jit_function *
@@ -303,9 +276,7 @@ jit68_context_get_builtin_function (gcc_jit_context *ctxt,
 				    uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_function *result = gcc_jit_context_get_builtin_function (ctxt, name);
-  free (name);
-  return result;
+  return gcc_jit_context_get_builtin_function (ctxt, name);
 }
 
 void
@@ -314,7 +285,6 @@ jit68_function_dump_to_dot (gcc_jit_function *func,
 {
   char *path = ucs4_to_utf8 (s, len, stride);
   gcc_jit_function_dump_to_dot (func, path);
-  free (path);
 }
 
 gcc_jit_block *
@@ -322,9 +292,7 @@ jit68_function_new_block (gcc_jit_function *func,
 			  uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_block *result = gcc_jit_function_new_block (func, name);
-  free (name);
-  return result;
+  return gcc_jit_function_new_block (func, name);
 }
 
 gcc_jit_lvalue *
@@ -333,10 +301,7 @@ jit68_context_new_global (gcc_jit_context *ctxt, gcc_jit_location *loc,
 			  uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_lvalue *result = gcc_jit_context_new_global (ctxt, loc, kind, type,
-						       name);
-  free (name);
-  return result;
+  return gcc_jit_context_new_global (ctxt, loc, kind, type, name);
 }
 
 gcc_jit_rvalue *
@@ -369,10 +334,7 @@ jit68_context_get_target_builtin_function (gcc_jit_context *ctxt,
 					   size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_function *result =
-    gcc_jit_context_get_target_builtin_function (ctxt, name);
-  free (name);
-  return result;
+  return gcc_jit_context_get_target_builtin_function (ctxt, name);
 }
 
 gcc_jit_rvalue *
@@ -380,9 +342,7 @@ jit68_context_new_string_literal (gcc_jit_context *ctxt,
 				  uint32_t *s, size_t len, size_t stride)
 {
   char *value = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_rvalue *result = gcc_jit_context_new_string_literal (ctxt, value);
-  free (value);
-  return result;
+  return gcc_jit_context_new_string_literal (ctxt, value);
 }
 
 gcc_jit_rvalue *
@@ -410,7 +370,6 @@ jit68_lvalue_set_link_section (gcc_jit_lvalue *lvalue,
 {
   char *section_name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_lvalue_set_link_section (lvalue, section_name);
-  free (section_name);
 }
 
 void
@@ -419,7 +378,6 @@ jit68_lvalue_set_register_name (gcc_jit_lvalue *lvalue,
 {
   char *reg_name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_lvalue_set_register_name (lvalue, reg_name);
-  free (reg_name);
 }
 
 gcc_jit_lvalue *
@@ -428,9 +386,7 @@ jit68_function_new_local (gcc_jit_function *func, gcc_jit_location *loc,
 			  uint32_t *s, size_t len, size_t stride)
 {
   char *name = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_lvalue *result = gcc_jit_function_new_local (func, loc, type, name);
-  free (name);
-  return result;
+  return gcc_jit_function_new_local (func, loc, type, name);
 }
 
 void
@@ -440,7 +396,6 @@ jit68_block_add_comment (gcc_jit_block *block,
 {
   char *text = ucs4_to_utf8 (s, len, stride);
   gcc_jit_block_add_comment (block, loc, text);
-  free (text);
 }
 
 void
@@ -459,7 +414,6 @@ jit68_context_dump_reproducer_to_file (gcc_jit_context *ctxt,
 {
   char *path = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_dump_reproducer_to_file (ctxt, path);
-  free (path);
 }
 
 void
@@ -469,7 +423,6 @@ jit68_context_enable_dump (gcc_jit_context *ctxt,
 {
   char *dumpname = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_enable_dump (ctxt, dumpname, out_ptr);
-  free (dumpname);
 }
 
 void
@@ -478,7 +431,6 @@ jit68_timer_push (gcc_jit_timer *timer,
 {
   char *item_name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_timer_push (timer, item_name);
-  free (item_name);
 }
 
 void
@@ -487,7 +439,6 @@ jit68_timer_pop (gcc_jit_timer *timer,
 {
   char *item_name = ucs4_to_utf8 (s, len, stride);
   gcc_jit_timer_pop (timer, item_name);
-  free (item_name);
 }
 
 void
@@ -514,10 +465,7 @@ jit68_block_add_extended_asm (gcc_jit_block *block,
 			      uint32_t *s, size_t len, size_t stride)
 {
   char *asm_template = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_extended_asm *result = gcc_jit_block_add_extended_asm (block, loc,
-								 asm_template);
-  free (asm_template);
-  return result;
+  return gcc_jit_block_add_extended_asm (block, loc, asm_template);
 }
 
 gcc_jit_extended_asm *
@@ -530,12 +478,9 @@ jit68_block_end_with_extended_asm_goto (gcc_jit_block *block,
 					gcc_jit_block *fallthrough_block)
 {
   char *asm_template = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_extended_asm *result =
-    gcc_jit_block_end_with_extended_asm_goto (block, loc, asm_template,
-					      num_goto_blocks, goto_blocks,
-					      fallthrough_block);
-  free (asm_template);
-  return result;
+  return gcc_jit_block_end_with_extended_asm_goto (block, loc, asm_template,
+						   num_goto_blocks, goto_blocks,
+						   fallthrough_block);
 }
 
 void
@@ -550,8 +495,6 @@ jit68_extended_asm_add_output_operand (gcc_jit_extended_asm *ext_asm,
   char *constraint = ucs4_to_utf8 (c_s, c_len, c_stride);
   gcc_jit_extended_asm_add_output_operand (ext_asm, asm_symbolic_name,
 					   constraint, dest);
-  free (asm_symbolic_name);
-  free (constraint);
 }
 
 void
@@ -566,8 +509,6 @@ jit68_extended_asm_add_input_operand (gcc_jit_extended_asm *ext_asm,
   char *constraint = ucs4_to_utf8 (c_s, c_len, c_stride);
   gcc_jit_extended_asm_add_input_operand (ext_asm, asm_symbolic_name,
 					  constraint, src);
-  free (asm_symbolic_name);
-  free (constraint);
 }
 
 void
@@ -576,7 +517,6 @@ jit68_extended_asm_add_clobber (gcc_jit_extended_asm *ext_asm,
 {
   char *victim = ucs4_to_utf8 (s, len, stride);
   gcc_jit_extended_asm_add_clobber (ext_asm, victim);
-  free (victim);
 }
 
 void
@@ -586,9 +526,7 @@ jit68_context_add_top_level_asm (gcc_jit_context *ctxt,
 {
   char *asm_stmts = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_add_top_level_asm (ctxt, loc, asm_stmts);
-  free (asm_stmts);
 }
-
 
 void
 jit68_function_add_integer_array_attribute (gcc_jit_function *func,
@@ -602,11 +540,10 @@ jit68_function_add_integer_array_attribute (gcc_jit_function *func,
 void
 jit68_function_add_string_attribute (gcc_jit_function *func,
 				     enum gcc_jit_fn_attribute attribute,
-    				     uint32_t *s, size_t len, size_t stride)
+				     uint32_t *s, size_t len, size_t stride)
 {
   char *value = ucs4_to_utf8 (s, len, stride);
   gcc_jit_function_add_string_attribute (func, attribute, value);
-  free (value);
 }
 
 int
@@ -614,9 +551,7 @@ jit68_target_info_cpu_supports (gcc_jit_target_info *info,
 				uint32_t *s, size_t len, size_t stride)
 {
   char *feature = ucs4_to_utf8 (s, len, stride);
-  int result = gcc_jit_target_info_cpu_supports (info, feature);
-  free (feature);
-  return result;
+  return gcc_jit_target_info_cpu_supports (info, feature);
 }
 
 void
@@ -626,7 +561,6 @@ jit68_lvalue_add_string_attribute (gcc_jit_lvalue *variable,
 {
   char *value = ucs4_to_utf8 (s, len, stride);
   gcc_jit_lvalue_add_string_attribute (variable, attribute, value);
-  free (value);
 }
 
 void
@@ -635,5 +569,4 @@ jit68_context_set_output_ident (gcc_jit_context *ctxt,
 {
   char *output_ident = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_set_output_ident (ctxt, output_ident);
-  free (output_ident);
 }
