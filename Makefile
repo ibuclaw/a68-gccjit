@@ -1,6 +1,6 @@
 B := build
 
-ALL_FLAGS := -g -O0
+ALL_FLAGS := -g -O0 -Wall
 
 CC := gcc-trunk
 CFLAGS := $(ALL_FLAGS)

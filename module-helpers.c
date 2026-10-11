@@ -71,7 +71,7 @@ ucs4_to_utf8 (const uint32_t *s, size_t n, size_t stride)
 	}
     }
   result[length] = '\0';
-  return result;
+  return (char *)result;
 }
 
 /* Open a FILE* from the given file descriptor.  */
@@ -108,7 +108,7 @@ jit68_context_add_command_line_option (gcc_jit_context *ctxt,
 				       uint32_t *s, size_t len, size_t stride)
 {
   char *optname = ucs4_to_utf8 (s, len, stride);
-  gcc_jit_context_add_command_line_option, (ctxt, optname);
+  gcc_jit_context_add_command_line_option (ctxt, optname);
   free (optname);
 }
 
