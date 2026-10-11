@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>  */
 #include <libgccjit.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 
 /* Definitions from ga68.h.  */
@@ -76,6 +77,66 @@ ucs4_to_utf8 (const uint32_t *s, size_t n, size_t stride)
     }
   result[length] = '\0';
   return (char *)result;
+}
+
+/* Convert from C UTF8 `char *` to Algol68 UCS-4 `string`.  */
+static uint32_t *
+utf8_to_ucs4 (const char *s, size_t n, size_t *lengthp)
+{
+  size_t length = 0;
+  for (size_t i = 0; i < n;)
+    {
+      uint8_t c = (uint8_t)s[i];
+      if (c < 0x80)
+        i += 1;
+      else if ((c & 0xe0) == 0xc0)
+        i += 2;
+      else if ((c & 0xf0) == 0xe0)
+        i += 3;
+      else
+        i += 4;
+
+      length++;
+    }
+
+  uint32_t *result = _libga68_malloc_leaf (length * sizeof (uint32_t));
+  size_t p = 0;
+  for (size_t i = 0; i < n; )
+    {
+      uint32_t c = (uint8_t) s[i];
+
+      if (c < 0x80)
+        {
+          i += 1;
+        }
+      else if ((c & 0xe0) == 0xc0)
+        {
+          c = ((c & 0x1f) << 6)
+              | ((uint8_t) s[i + 1] & 0x3f);
+          i += 2;
+        }
+      else if ((c & 0xf0) == 0xe0)
+        {
+          c = ((c & 0x0f) << 12)
+              | (((uint8_t) s[i + 1] & 0x3f) << 6)
+              | ((uint8_t)  s[i + 2] & 0x3f);
+          i += 3;
+        }
+      else
+        {
+          c = ((c & 0x07) << 18)
+              | (((uint8_t) s[i + 1] & 0x3f) << 12)
+              | (((uint8_t) s[i + 2] & 0x3f) << 6)
+              | ((uint8_t)  s[i + 3] & 0x3f);
+          i += 4;
+        }
+
+      *(uint32_t *) ((char *) result + p * sizeof (uint32_t)) = c;
+      p++;
+    }
+
+  *lengthp = length;
+  return result;
 }
 
 /* Open a FILE* from the given file descriptor.  */
@@ -148,6 +209,22 @@ jit68_context_set_logfile (gcc_jit_context *ctxt,
   gcc_jit_context_set_logfile (ctxt, logfile, flags, verbosity);
 }
 
+void
+jit68_context_get_first_error (gcc_jit_context *ctxt,
+			       uint32_t **sp, size_t *lenp)
+{
+  const char *result = gcc_jit_context_get_first_error (ctxt);
+  *sp = utf8_to_ucs4 (result, strlen (result), lenp);
+}
+
+void
+jit68_context_get_last_error (gcc_jit_context *ctxt,
+			      uint32_t **sp, size_t *lenp)
+{
+  const char *result = gcc_jit_context_get_last_error (ctxt);
+  *sp = utf8_to_ucs4 (result, strlen (result), lenp);
+}
+
 void *
 jit68_result_get_code (gcc_jit_result *res,
 		       uint32_t *s, size_t len, size_t stride)
@@ -162,6 +239,14 @@ jit68_result_get_global (gcc_jit_result *res,
 {
   char *name = ucs4_to_utf8 (s, len, stride);
   return gcc_jit_result_get_global (res, name);
+}
+
+void
+jit68_object_get_debug_string (gcc_jit_object *obj,
+			       uint32_t **sp, size_t *lenp)
+{
+  const char *result = gcc_jit_object_get_debug_string (obj);
+  *sp = utf8_to_ucs4 (result, strlen (result), lenp);
 }
 
 gcc_jit_location *
@@ -526,6 +611,14 @@ jit68_context_add_top_level_asm (gcc_jit_context *ctxt,
 {
   char *asm_stmts = ucs4_to_utf8 (s, len, stride);
   gcc_jit_context_add_top_level_asm (ctxt, loc, asm_stmts);
+}
+
+void
+jit68_target_info_arch (gcc_jit_target_info *info,
+			uint32_t **sp, size_t *lenp)
+{
+  const char *result = gcc_jit_target_info_arch (info);
+  *sp = utf8_to_ucs4 (result, strlen (result), lenp);
 }
 
 void

@@ -458,12 +458,10 @@ def
     c_context_set_logfile(jit_context of ctxt,
                           logfile, flags, verbosity);
 
-  { FIXME: char* -> string }
   { Get the first error message that occurred on the context. }
   pub proc jit_get_first_error = (JIT_Context ctxt) string:
     c_context_get_first_error(jit_context of ctxt);
 
-  { FIXME: char* -> string }
   { Get the last error message that occurred on the context. }
   pub proc jit_get_last_error = (JIT_Context ctxt) string:
     c_context_get_last_error(jit_context of ctxt);
@@ -486,7 +484,6 @@ def
      jit_context of res := c_object_get_context(jit_object of as_object(variant));
      res);
 
-  { FIXME: char* -> string }
   { Get a human-readable description of this object. }
   pub proc jit_get_debug_string = (JIT_Object_Variant variant) string:
     c_object_get_debug_string(jit_object of as_object(variant));
@@ -1608,7 +1605,6 @@ def
   pub proc target_info_cpu_supports = (JIT_Targetinfo target_info, string feature) bool:
     c_target_info_cpu_supports(jit_targetinfo of target_info, feature);
 
-  { FIXME: char* -> string }
   { Returns the ARCH of the currently running CPU. }
   pub proc target_info_arch = (JIT_Targetinfo target_info) string:
     c_target_info_arch(jit_targetinfo of target_info);
@@ -1682,15 +1678,15 @@ def
   proc (GccJitHandle, int, string) void c_context_compile_to_file = nest C "jit68_context_compile_to_file";
   proc (GccJitHandle, string, int) void c_context_dump_to_file = nest C "jit68_context_dump_to_file";
   proc (GccJitHandle, int, int, int) void c_context_set_logfile = nest C "jit68_context_set_logfile";
-  proc (GccJitHandle) string c_context_get_first_error = nest C "gcc_jit_context_get_first_error";
-  proc (GccJitHandle) string c_context_get_last_error = nest C "gcc_jit_context_get_last_error";
+  proc (GccJitHandle) string c_context_get_first_error = nest C "jit68_context_get_first_error";
+  proc (GccJitHandle) string c_context_get_last_error = nest C "jit68_context_get_last_error";
 
   proc (GccJitHandle, string) proc void c_result_get_code = nest C "jit68_result_get_code";
   proc (GccJitHandle, string) ref int c_result_get_global = nest C "jit68_result_get_global";
   proc (GccJitHandle) void c_result_release = nest C "gcc_jit_result_release";
 
   proc (GccJitHandle) GccJitHandle c_object_get_context = nest C "gcc_jit_object_get_context";
-  proc (GccJitHandle) string c_object_get_debug_string = nest C "gcc_jit_object_get_debug_string";
+  proc (GccJitHandle) string c_object_get_debug_string = nest C "jit68_object_get_debug_string";
 
   proc (GccJitHandle, string, int, int) GccJitHandle c_context_new_location = nest C "jit68_context_new_location";
   proc (GccJitHandle) GccJitHandle c_location_as_object = nest C "gcc_jit_location_as_object";
@@ -1863,7 +1859,7 @@ def
   proc (GccJitHandle) GccJitHandle c_context_get_target_info = nest C "gcc_jit_context_get_target_info";
   proc (GccJitHandle) void c_target_info_release = nest C "gcc_jit_target_info_release";
   proc (GccJitHandle, string) bool c_target_info_cpu_supports = nest C "jit68_target_info_cpu_supports";
-  proc (GccJitHandle) string c_target_info_arch = nest C "gcc_jit_target_info_arch";
+  proc (GccJitHandle) string c_target_info_arch = nest C "jit68_target_info_arch";
   proc (GccJitHandle, int) bool c_target_info_supports_target_dependent_type = nest C "gcc_jit_target_info_supports_target_dependent_type";
 
   proc (GccJitHandle, int, []int) void c_function_add_integer_array_attribute = nest C "jit68_function_add_integer_array_attribute";
