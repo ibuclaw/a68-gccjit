@@ -156,6 +156,27 @@ fd_to_file (int fd)
     }
 }
 
+/* Conversion from C string to Algol 68 string.  */
+void
+jit68_cstring_to_algol68 (const char *cstr,
+			  uint32_t **sp, size_t *lenp)
+{
+  if (cstr == NULL)
+    return;
+
+  *sp = utf8_to_ucs4 (cstr, strlen (cstr), lenp);
+}
+
+void
+jit68_cstring_free (char **cstr)
+{
+  if (cstr == NULL)
+    return;
+
+  free (*cstr);
+  *cstr = NULL;
+}
+
 /* `nest C` formal holes that need a little more assistance for mapping between
    Algol68 types to C types.  */
 void

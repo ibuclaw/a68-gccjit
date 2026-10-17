@@ -1331,10 +1331,9 @@ def
   pub proc jit_dump_reproducer_to_file = (JIT_Context ctxt, string path) void:
     c_context_dump_reproducer_to_file(jit_context of ctxt, path);
 
-  { FIXME: ??? -> out char** }
   { Enable the dumping of a specific set of internal state from the compilation,
     capturing the result in-memory as a buffer. }
-  pub proc jit_enable_dump = (JIT_Context ctxt, string dump_name, FIXME_StringPtr out_ptr) void:
+  pub proc jit_enable_dump = (JIT_Context ctxt, string dump_name, ref Cstring out_ptr) void:
     c_context_enable_dump(jit_context of ctxt,
                           dump_name, out_ptr);
 
@@ -1639,6 +1638,21 @@ def
 
 
   { ////////////////////////////////////////////////////////////////////////// }
+  { Compatibility with C strings. }
+  { ////////////////////////////////////////////////////////////////////////// }
+  { FIXME: Should this go in its own module with proper support? }
+  pub mode Cstring = ref short short bits;
+
+  pub op STR = (Cstring cstr) string:
+    c_cstring_to_algol68(cstr);
+
+  pub proc cstring_free = (ref Cstring cstr) void:
+    c_cstring_free(cstr);
+
+  proc (Cstring) string c_cstring_to_algol68 = nest C "jit68_cstring_to_algol68";
+  proc (ref Cstring) void c_cstring_free = nest C "jit68_cstring_free";
+
+  { ////////////////////////////////////////////////////////////////////////// }
   { Private definitions }
   { ////////////////////////////////////////////////////////////////////////// }
   { These are the formal hole definitions taken from libgccjit.h
@@ -1657,11 +1671,11 @@ def
     - C `struct **` arrays are mapped to `[]GccJitHandle`, for the same reasons
       as with mapping to strings.
     - C `void *` is mapped to `FIXME_VoidPtr` - TODO for later.
-    - C `char **` is mapped to `FIXME_StringPtr` - TODO for later.
+    - C `char **` is mapped to `ref ref short short bits`. For brevity, this is
+      `ref Cstring` here, which has it's own `op STR` to convert to `string`.
   }
   mode GccJitHandle = ref struct (int handle);
   mode FIXME_VoidPtr = ref struct (int bottom);
-  mode FIXME_StringPtr = ref struct (int stringptr);
 
   proc GccJitHandle c_context_acquire = nest C "gcc_jit_context_acquire";
   proc (GccJitHandle) void c_context_release = nest C "gcc_jit_context_release";
@@ -1806,7 +1820,7 @@ def
   proc (GccJitHandle) GccJitHandle c_context_new_child_context = nest C "gcc_jit_context_new_child_context";
 
   proc (GccJitHandle, string) void c_context_dump_reproducer_to_file = nest C "jit68_context_dump_reproducer_to_file";
-  proc (GccJitHandle, string, FIXME_StringPtr) void c_context_enable_dump = nest C "jit68_context_enable_dump";
+  proc (GccJitHandle, string, ref Cstring) void c_context_enable_dump = nest C "jit68_context_enable_dump";
 
   proc GccJitHandle c_timer_new = nest C "gcc_jit_timer_new";
   proc (GccJitHandle) void c_timer_release = nest C "gcc_jit_timer_release";
