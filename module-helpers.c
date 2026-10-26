@@ -451,6 +451,23 @@ jit68_global_set_initializer (gcc_jit_lvalue *global,
 }
 
 gcc_jit_rvalue *
+jit68_context_new_rvalue_from_ptr (gcc_jit_context *ctxt,
+				   gcc_jit_type *pointer_type,
+				   void *value)
+{
+  return gcc_jit_context_new_rvalue_from_ptr (ctxt, pointer_type, value);
+}
+
+gcc_jit_rvalue *
+jit68_context_new_rvalue_from_word (gcc_jit_context *ctxt,
+				    gcc_jit_type *pointer_type,
+				    size_t value)
+{
+  return gcc_jit_context_new_rvalue_from_ptr (ctxt, pointer_type,
+					      (void *)value);
+}
+
+gcc_jit_rvalue *
 jit68_context_new_string_literal (gcc_jit_context *ctxt,
 				  uint32_t *s, size_t len, size_t stride)
 {

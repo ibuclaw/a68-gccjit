@@ -70,6 +70,12 @@ def
   mode Global_Initializer = union ([]short short int, []short int, []int,
                                    []long int, []long long int, []word int);
 
+  { gcc_jit_context_new_rvalue_from_ptr accepts any address-like value. }
+  mode Rvalue_Ptr = union (ref short short int, ref short int, ref int,
+                           ref long int, ref long long int, ref bool, ref char,
+                           ref real, ref long real, ref long long real,
+                           word int);
+
   { Options taking string values. }
   mode Str_Option = struct (int str_option);
   Str_Option option_progname,
@@ -921,10 +927,32 @@ def
 
   { Pointers. }
   pub proc jit_new_rvalue_from_ptr = (JIT_Context ctxt, JIT_Type type,
-                                      FIXME_VoidPtr value) JIT_Rvalue:
+                                      Rvalue_Ptr value) JIT_Rvalue:
     (JIT_Rvalue res;
-     jit_rvalue of res := c_context_new_rvalue_from_ptr(jit_context of ctxt,
-                                                        jit_type of type, value);
+     jit_rvalue of res := case value in
+       (ref short short int ssi): c_context_new_rvalue_from_ptr_ssi(jit_context of ctxt,
+                                                                    jit_type of type, ssi),
+       (ref short int si):        c_context_new_rvalue_from_ptr_si(jit_context of ctxt,
+                                                                   jit_type of type, si),
+       (ref int i):               c_context_new_rvalue_from_ptr_i(jit_context of ctxt,
+                                                                  jit_type of type, i),
+       (ref long int li):         c_context_new_rvalue_from_ptr_li(jit_context of ctxt,
+                                                                   jit_type of type, li),
+       (ref long long int lli):   c_context_new_rvalue_from_ptr_lli(jit_context of ctxt,
+                                                                    jit_type of type, lli),
+       (ref bool b):              c_context_new_rvalue_from_ptr_b(jit_context of ctxt,
+                                                                  jit_type of type, b),
+       (ref char c):              c_context_new_rvalue_from_ptr_c(jit_context of ctxt,
+                                                                  jit_type of type, c),
+       (ref real r):              c_context_new_rvalue_from_ptr_r(jit_context of ctxt,
+                                                                  jit_type of type, r),
+       (ref long real lr):        c_context_new_rvalue_from_ptr_lr(jit_context of ctxt,
+                                                                   jit_type of type, lr),
+       (ref long long real llr):  c_context_new_rvalue_from_ptr_llr(jit_context of ctxt,
+                                                                    jit_type of type, llr),
+       (word int w):              c_context_new_rvalue_from_ptr_wi(jit_context of ctxt,
+                                                                   jit_type of type, w)
+     esac;
      res);
 
   { Create a null pointer value of the given type. }
@@ -1680,14 +1708,13 @@ def
       implement a "glue" function to convert strings between the two languages.
     - C `struct **` arrays are mapped to `[]GccJitHandle`, for the same reasons
       as with mapping to strings.
-    - C `void *` has two mappings: the first is a union of all combination of
-      `[]int` types named `Global_Initializer`, the second is mapped to
-      `FIXME_VoidPtr` - TODO for later.
+    - C `void *` has two mappings: the first is a union of all combinations of
+      `[]int` types named `Global_Initializer`, the second is mapped to a union
+      of all combinations of `ref` int and real types named `Rvalue_Ptr`.
     - C `char **` is mapped to `ref ref short short bits`. For brevity, this is
       `ref Cstring` here, which has it's own `op STR` to convert to `string`.
   }
   mode GccJitHandle = ref struct (int handle);
-  mode FIXME_VoidPtr = ref struct (int bottom);
 
   proc GccJitHandle c_context_acquire = nest C "gcc_jit_context_acquire";
   proc (GccJitHandle) void c_context_release = nest C "gcc_jit_context_release";
@@ -1784,7 +1811,19 @@ def
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_zero = nest C "gcc_jit_context_zero";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_one = nest C "gcc_jit_context_one";
   proc (GccJitHandle, GccJitHandle, long real) GccJitHandle c_context_new_rvalue_from_double = nest C "gcc_jit_context_new_rvalue_from_double";
-  proc (GccJitHandle, GccJitHandle, FIXME_VoidPtr) GccJitHandle c_context_new_rvalue_from_ptr = nest C "gcc_jit_context_new_rvalue_from_ptr";
+
+  proc (GccJitHandle, GccJitHandle, ref short short int) GccJitHandle c_context_new_rvalue_from_ptr_ssi = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref short int) GccJitHandle c_context_new_rvalue_from_ptr_si = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref int) GccJitHandle c_context_new_rvalue_from_ptr_i = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref long int) GccJitHandle c_context_new_rvalue_from_ptr_li = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref long long int) GccJitHandle c_context_new_rvalue_from_ptr_lli = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref bool) GccJitHandle c_context_new_rvalue_from_ptr_b = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref char) GccJitHandle c_context_new_rvalue_from_ptr_c = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref real) GccJitHandle c_context_new_rvalue_from_ptr_r = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref long real) GccJitHandle c_context_new_rvalue_from_ptr_lr = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, ref long long real) GccJitHandle c_context_new_rvalue_from_ptr_llr = nest C "jit68_context_new_rvalue_from_ptr";
+  proc (GccJitHandle, GccJitHandle, word int) GccJitHandle c_context_new_rvalue_from_ptr_wi = nest C "jit68_context_new_rvalue_from_word";
+
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_null = nest C "gcc_jit_context_null";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_new_sizeof = nest C "gcc_jit_context_new_sizeof";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_context_new_alignof = nest C "gcc_jit_context_new_alignof";
