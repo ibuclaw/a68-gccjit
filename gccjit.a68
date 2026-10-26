@@ -66,6 +66,10 @@ def
   { JIT_Location capsulates a source code location, and are optional. }
   JIT_Location no_location;
 
+  { gcc_jit_global_set_initializer only accepts integral arrays. }
+  mode Global_Initializer = union ([]short short int, []short int, []int,
+                                   []long int, []long long int, []word int);
+
   { Options taking string values. }
   mode Str_Option = struct (int str_option);
   Str_Option option_progname,
@@ -859,10 +863,16 @@ def
      res);
 
   { Set an initial value for an integral array global. }
-  pub proc global_set_initializer = (JIT_Lvalue global, FIXME_VoidPtr blob,
-                                     word int size) JIT_Lvalue:
+  pub proc global_set_initializer = (JIT_Lvalue global, Global_Initializer blob) JIT_Lvalue:
     (JIT_Lvalue res;
-     jit_lvalue of res := c_global_set_initializer(jit_lvalue of global, blob, size);
+     jit_lvalue of res := case blob in
+       ([]short short int ssi): c_global_set_initializer_ssi(jit_lvalue of global, ssi),
+       ([]short int si):        c_global_set_initializer_si(jit_lvalue of global, si),
+       ([]int i):               c_global_set_initializer_i(jit_lvalue of global, i),
+       ([]long int li):         c_global_set_initializer_li(jit_lvalue of global, li),
+       ([]long long int lli):   c_global_set_initializer_lli(jit_lvalue of global, lli),
+       ([]word int wi):         c_global_set_initializer_wi(jit_lvalue of global, wi)
+     esac;
      res);
 
   { Mark a global variable as read-only. }
@@ -1670,7 +1680,9 @@ def
       implement a "glue" function to convert strings between the two languages.
     - C `struct **` arrays are mapped to `[]GccJitHandle`, for the same reasons
       as with mapping to strings.
-    - C `void *` is mapped to `FIXME_VoidPtr` - TODO for later.
+    - C `void *` has two mappings: the first is a union of all combination of
+      `[]int` types named `Global_Initializer`, the second is mapped to
+      `FIXME_VoidPtr` - TODO for later.
     - C `char **` is mapped to `ref ref short short bits`. For brevity, this is
       `ref Cstring` here, which has it's own `op STR` to convert to `string`.
   }
@@ -1752,7 +1764,14 @@ def
   proc (GccJitHandle, GccJitHandle, GccJitHandle, []GccJitHandle) GccJitHandle c_context_new_array_constructor = nest C "jit68_context_new_array_constructor";
   proc (GccJitHandle, GccJitHandle) GccJitHandle c_global_set_initializer_rvalue = nest C "gcc_jit_global_set_initializer_rvalue";
   proc (GccJitHandle, string) GccJitHandle c_context_get_target_builtin_function = nest C "jit68_context_get_target_builtin_function";
-  proc (GccJitHandle, FIXME_VoidPtr, word int) GccJitHandle c_global_set_initializer = nest C "gcc_jit_global_set_initializer";
+
+  proc (GccJitHandle, []short short int) GccJitHandle c_global_set_initializer_ssi = nest C "jit68_global_set_initializer";
+  proc (GccJitHandle, []short int) GccJitHandle c_global_set_initializer_si = nest C "jit68_global_set_initializer";
+  proc (GccJitHandle, []int) GccJitHandle c_global_set_initializer_i = nest C "jit68_global_set_initializer";
+  proc (GccJitHandle, []long int) GccJitHandle c_global_set_initializer_li = nest C "jit68_global_set_initializer";
+  proc (GccJitHandle, []long long int) GccJitHandle c_global_set_initializer_lli = nest C "jit68_global_set_initializer";
+  proc (GccJitHandle, []word int) GccJitHandle c_global_set_initializer_wi = nest C "jit68_global_set_initializer";
+
   proc (GccJitHandle) void c_global_set_readonly = nest C "gcc_jit_global_set_readonly";
 
   proc (GccJitHandle) GccJitHandle c_lvalue_as_object = nest C "gcc_jit_lvalue_as_object";

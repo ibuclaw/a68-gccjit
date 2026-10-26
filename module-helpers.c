@@ -443,6 +443,13 @@ jit68_context_get_target_builtin_function (gcc_jit_context *ctxt,
   return gcc_jit_context_get_target_builtin_function (ctxt, name);
 }
 
+gcc_jit_lvalue *
+jit68_global_set_initializer (gcc_jit_lvalue *global,
+			      void *blob, size_t len, size_t stride)
+{
+  return gcc_jit_global_set_initializer (global, blob, len * stride);
+}
+
 gcc_jit_rvalue *
 jit68_context_new_string_literal (gcc_jit_context *ctxt,
 				  uint32_t *s, size_t len, size_t stride)
