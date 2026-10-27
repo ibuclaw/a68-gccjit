@@ -537,6 +537,17 @@ def
                                                num_bytes, is_signed);
      res);
 
+  { Upcasting to type. }
+  proc as_type = (JIT_Type_Variant variant) JIT_Type:
+    (JIT_Type res;
+     jit_type of res := (case variant in
+                         (JIT_Type type):          jit_type of type,
+                         (JIT_Struct type):        jit_type of struct_as_type(type),
+                         (JIT_Function_Type type): jit_function_type of type,
+                         (JIT_Vector_Type type):   jit_vector_type of type
+                         esac);
+     res);
+
   { Given type `T`, get type `T*`. }
   pub proc type_get_pointer = (JIT_Type type) JIT_Type:
     (JIT_Type res;
@@ -561,24 +572,22 @@ def
      jit_type of res := c_type_get_restrict(jit_type of type);
      res);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Given types LTYPE and RTYPE, return non-zero if they are compatible. }
-  pub proc compatible_types = (JIT_Type a, JIT_Type b) int:
-    c_compatible_types(jit_type of a,
-                       jit_type of b);
+  pub proc compatible_types = (JIT_Type_Variant a, JIT_Type_Variant b) int:
+    c_compatible_types(jit_type of as_type(a),
+                       jit_type of as_type(b));
 
   { Given type `T`, get its size. }
   pub proc type_get_size = (JIT_Type type) word int:
     c_type_get_size(jit_type of type);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an array type T[N] for a constant N. }
   pub proc jit_new_array_type_loc = (JIT_Context ctxt, JIT_Location location,
-                                     JIT_Type element_type, int num_elements) JIT_Type:
+                                     JIT_Type_Variant element_type, int num_elements) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_array_type(jit_context of ctxt,
                                                  jit_location of location,
-                                                 jit_type of element_type,
+                                                 jit_type of as_type(element_type),
                                                  num_elements);
      res);
 
@@ -586,15 +595,14 @@ def
                                  int num_elements) JIT_Type:
     jit_new_array_type_loc(ctxt, no_location, element_type, num_elements);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an array type T[N] using a 64-bit element count. }
   pub proc jit_new_array_type_u64_loc = (JIT_Context ctxt, JIT_Location location,
-                                         JIT_Type element_type,
+                                         JIT_Type_Variant element_type,
                                          long long int num_elements) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_array_type_u64(jit_context of ctxt,
                                                      jit_location of location,
-                                                     jit_type of element_type,
+                                                     jit_type of as_type(element_type),
                                                      num_elements);
      res);
 
@@ -602,14 +610,13 @@ def
                                      long long int num_elements) JIT_Type:
     jit_new_array_type_u64_loc(ctxt, no_location, element_type, num_elements);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a field, for use within a struct or union. }
   pub proc jit_new_field_loc = (JIT_Context ctxt, JIT_Location location,
-                                JIT_Type type, string name) JIT_Field:
+                                JIT_Type_Variant type, string name) JIT_Field:
     (JIT_Field res;
      jit_field of res := c_context_new_field(jit_context of ctxt,
                                              jit_location of location,
-                                             jit_type of type,
+                                             jit_type of as_type(type),
                                              name);
      res);
 
@@ -694,15 +701,14 @@ def
   pub proc jit_new_union_type = (JIT_Context ctxt, string name, []JIT_Field fields) JIT_Struct:
     jit_new_union_type_loc(ctxt, no_location, name, fields);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a function pointer type. }
   pub proc jit_new_function_ptr_type_loc = (JIT_Context ctxt, JIT_Location location,
-                                            JIT_Type return_type, []JIT_Type param_types,
+                                            JIT_Type_Variant return_type, []JIT_Type param_types,
                                             bool is_variadic) JIT_Type:
     (JIT_Type res;
      jit_type of res := c_context_new_function_ptr_type(jit_context of ctxt,
                                                         jit_location of location,
-                                                        jit_type of return_type,
+                                                        jit_type of as_type(return_type),
                                                         jit_type of param_types,
                                                         is_variadic);
      res);
@@ -711,14 +717,13 @@ def
                                         []JIT_Type param_types, bool is_variadic) JIT_Type:
     jit_new_function_ptr_type_loc(ctxt, no_location, return_type, param_types, is_variadic);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a function param. }
   pub proc jit_new_param_loc = (JIT_Context ctxt, JIT_Location location,
-                                JIT_Type type, string name) JIT_Param:
+                                JIT_Type_Variant type, string name) JIT_Param:
     (JIT_Param res;
      jit_param of res := c_context_new_param(jit_context of ctxt,
                                              jit_location of location,
-                                             jit_type of type,
+                                             jit_type of as_type(type),
                                              name);
      res);
 
@@ -790,68 +795,65 @@ def
      jit_function of res := c_block_get_function(jit_block of block);
      res);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a global variable. }
   pub proc jit_new_global_loc = (JIT_Context ctxt, JIT_Location location,
-                                 Global_Kind kind, JIT_Type type, string name) JIT_Lvalue:
+                                 Global_Kind kind, JIT_Type_Variant type,
+                                 string name) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_context_new_global(jit_context of ctxt,
                                                jit_location of location,
                                                global_kind of kind,
-                                               jit_type of type,
+                                               jit_type of as_type(type),
                                                name);
      res);
 
-  pub proc jit_new_global = (JIT_Context ctxt, Global_Kind kind, JIT_Type type,
+  pub proc jit_new_global = (JIT_Context ctxt, Global_Kind kind, JIT_Type_Variant type,
                              string name) JIT_Lvalue:
     jit_new_global_loc(ctxt, no_location, kind, type, name);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a constructor for a struct as an rvalue. }
   pub proc jit_new_struct_constructor_loc = (JIT_Context ctxt, JIT_Location location,
-                                             JIT_Type type, []JIT_Field fields,
+                                             JIT_Type_Variant type, []JIT_Field fields,
                                              []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_struct_constructor(jit_context of ctxt,
                                                            jit_location of location,
-                                                           jit_type of type,
+                                                           jit_type of as_type(type),
                                                            jit_field of fields,
                                                            jit_rvalue of values);
      res);
 
-  pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Type type,
+  pub proc jit_new_struct_constructor = (JIT_Context ctxt, JIT_Type_Variant type,
                                          []JIT_Field fields, []JIT_Rvalue values) JIT_Rvalue:
     jit_new_struct_constructor_loc(ctxt, no_location, type, fields, values);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a constructor for a union as an rvalue. }
   pub proc jit_new_union_constructor_loc = (JIT_Context ctxt, JIT_Location location,
-                                            JIT_Type type, JIT_Field field,
+                                            JIT_Type_Variant type, JIT_Field field,
                                             JIT_Rvalue value) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_union_constructor(jit_context of ctxt,
                                                           jit_location of location,
-                                                          jit_type of type,
+                                                          jit_type of as_type(type),
                                                           jit_field of field,
                                                           jit_rvalue of value);
      res);
 
-  pub proc jit_new_union_constructor = (JIT_Context ctxt, JIT_Type type,
+  pub proc jit_new_union_constructor = (JIT_Context ctxt, JIT_Type_Variant type,
                                         JIT_Field field, JIT_Rvalue value) JIT_Rvalue:
     jit_new_union_constructor_loc(ctxt, no_location, type, field, value);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a constructor for an array as an rvalue. }
   pub proc jit_new_array_constructor_loc = (JIT_Context ctxt, JIT_Location location,
-                                            JIT_Type type, []JIT_Rvalue values) JIT_Rvalue:
+                                            JIT_Type_Variant type, []JIT_Rvalue values) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_array_constructor(jit_context of ctxt,
                                                           jit_location of location,
-                                                          jit_type of type,
+                                                          jit_type of as_type(type),
                                                           jit_rvalue of values);
      res);
 
-  pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Type type,
+  pub proc jit_new_array_constructor = (JIT_Context ctxt, JIT_Type_Variant type,
                                         []JIT_Rvalue values) JIT_Rvalue:
     jit_new_array_constructor_loc(ctxt, no_location, type, values);
 
@@ -979,38 +981,39 @@ def
      jit_rvalue of res := c_context_new_string_literal(jit_context of ctxt, value);
      res);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an rvalue for a unary operation. }
   pub proc jit_new_unary_op_loc = (JIT_Context ctxt, JIT_Location location, Unary_Op unary_op,
-                                   JIT_Type result_type, JIT_Rvalue_Variant expr) JIT_Rvalue:
+                                   JIT_Type_Variant result_type,
+                                   JIT_Rvalue_Variant expr) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_unary_op(jit_context of ctxt,
                                                  jit_location of location,
                                                  unary_op of unary_op,
-                                                 jit_type of result_type,
+                                                 jit_type of as_type(result_type),
                                                  jit_rvalue of as_rvalue(expr));
      res);
 
-  pub proc jit_new_unary_op = (JIT_Context ctxt, Unary_Op unary_op, JIT_Type result_type,
+  pub proc jit_new_unary_op = (JIT_Context ctxt, Unary_Op unary_op,
+                               JIT_Type_Variant result_type,
                                JIT_Rvalue_Variant expr) JIT_Rvalue:
     jit_new_unary_op_loc(ctxt, no_location, unary_op, result_type, expr);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create an rvalue for a binary operation. }
   pub proc jit_new_binary_op_loc = (JIT_Context ctxt, JIT_Location location,
-                                    Binary_Op binary_op, JIT_Type result_type,
+                                    Binary_Op binary_op, JIT_Type_Variant result_type,
                                     JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_binary_op(jit_context of ctxt,
                                                   jit_location of location,
                                                   binary_op of binary_op,
-                                                  jit_type of result_type,
+                                                  jit_type of as_type(result_type),
                                                   jit_rvalue of as_rvalue(a),
                                                   jit_rvalue of as_rvalue(b));
      res);
 
-  pub proc jit_new_binary_op = (JIT_Context ctxt, Binary_Op binary_op, JIT_Type result_type,
-                                    JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
+  pub proc jit_new_binary_op = (JIT_Context ctxt, Binary_Op binary_op,
+                                JIT_Type_Variant result_type,
+                                JIT_Rvalue_Variant a, JIT_Rvalue_Variant b) JIT_Rvalue:
     jit_new_binary_op_loc(ctxt, no_location, binary_op, result_type, a, b);
 
   { Create an rvalue for a comparison. }
@@ -1056,32 +1059,32 @@ def
                                        []JIT_Rvalue args) JIT_Rvalue:
     jit_new_call_through_ptr_loc(ctxt, no_location, fn_ptr, args);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Type-coercion. }
   pub proc jit_new_cast_loc = (JIT_Context ctxt, JIT_Location location,
-                               JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+                               JIT_Rvalue_Variant expr, JIT_Type_Variant type) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_cast(jit_context of ctxt,
                                              jit_location of location,
                                              jit_rvalue of as_rvalue(expr),
-                                             jit_type of type);
+                                             jit_type of as_type(type));
      res);
 
-  pub proc jit_new_cast = (JIT_Context ctxt, JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+  pub proc jit_new_cast = (JIT_Context ctxt, JIT_Rvalue_Variant expr,
+                           JIT_Type_Variant type) JIT_Rvalue:
     jit_new_cast_loc(ctxt, no_location, expr, type);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Reinterpret a value as another type. }
   pub proc jit_new_bitcast_loc = (JIT_Context ctxt, JIT_Location location,
-                                  JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+                                  JIT_Rvalue_Variant expr, JIT_Type_Variant type) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_new_bitcast(jit_context of ctxt,
                                                 jit_location of location,
                                                 jit_rvalue of as_rvalue(expr),
-                                                jit_type of type);
+                                                jit_type of as_type(type));
      res);
 
-  pub proc jit_new_bitcast = (JIT_Context ctxt, JIT_Rvalue_Variant expr, JIT_Type type) JIT_Rvalue:
+  pub proc jit_new_bitcast = (JIT_Context ctxt, JIT_Rvalue_Variant expr,
+                              JIT_Type_Variant type) JIT_Rvalue:
     jit_new_bitcast_loc(ctxt, no_location, expr, type);
 
   { Set the alignment of a variable. }
@@ -1107,19 +1110,18 @@ def
                                    JIT_Rvalue_Variant index) JIT_Lvalue:
     jit_new_array_access_loc(ctxt, no_location, ptr, index);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Given a vector rvalue, cast it to the type ``type``, doing an element-wise conversion. }
   pub proc jit_convert_vector_loc = (JIT_Context ctxt, JIT_Location location,
-                                     JIT_Rvalue_Variant vector, JIT_Type type) JIT_Rvalue:
+                                     JIT_Rvalue_Variant vector, JIT_Type_Variant type) JIT_Rvalue:
     (JIT_Rvalue res;
      jit_rvalue of res := c_context_convert_vector(jit_context of ctxt,
                                                    jit_location of location,
                                                    jit_rvalue of as_rvalue(vector),
-                                                   jit_type of type);
+                                                   jit_type of as_type(type));
      res);
 
   pub proc jit_convert_vector = (JIT_Context ctxt, JIT_Rvalue_Variant vector,
-                                 JIT_Type type) JIT_Rvalue:
+                                 JIT_Type_Variant type) JIT_Rvalue:
     jit_convert_vector_loc(ctxt, no_location, vector, type);
 
   { Build a permutation vector rvalue from an 3 arrays of elements. }
@@ -1222,29 +1224,29 @@ def
   pub proc lvalue_set_register_name = (JIT_Lvalue lvalue, string name) void:
     c_lvalue_set_register_name(jit_lvalue of lvalue, name);
 
-  { FIXME: union(JIT_Type, JIT_Struct) ptr and upcast }
   { Create a local variable within a function. }
   pub proc function_new_local_loc = (JIT_Function function, JIT_Location location,
-                                     JIT_Type type, string name) JIT_Lvalue:
+                                     JIT_Type_Variant type, string name) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_function_new_local(jit_function of function,
                                                jit_location of location,
-                                               jit_type of type, name);
+                                               jit_type of as_type(type), name);
      res);
 
-  pub proc function_new_local = (JIT_Function function, JIT_Type type, string name) JIT_Lvalue:
+  pub proc function_new_local = (JIT_Function function, JIT_Type_Variant type,
+                                 string name) JIT_Lvalue:
     function_new_local_loc(function, no_location, type, name);
 
   { Create a temporary local variable. }
   pub proc function_new_temp_loc = (JIT_Function function, JIT_Location location,
-                                    JIT_Type type) JIT_Lvalue:
+                                    JIT_Type_Variant type) JIT_Lvalue:
     (JIT_Lvalue res;
      jit_lvalue of res := c_function_new_temp(jit_function of function,
                                               jit_location of location,
-                                              jit_type of type);
+                                              jit_type of as_type(type));
      res);
 
-  pub proc function_new_temp = (JIT_Function function, JIT_Type type) JIT_Lvalue:
+  pub proc function_new_temp = (JIT_Function function, JIT_Type_Variant type) JIT_Lvalue:
     function_new_temp_loc(function, no_location, type);
 
   { Add evaluation of an rvalue, discarding the result analogous to: (void)EXPR;. }
